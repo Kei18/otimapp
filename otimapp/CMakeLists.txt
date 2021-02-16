@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.16)
+file(GLOB SRCS "./src/*.cpp")
+project(lib-otimapp)
+add_library(lib-otimapp STATIC ${SRCS})
+add_definitions(-D_MAPDIR_="${CMAKE_CURRENT_LIST_DIR}/../map/")
+target_compile_options(lib-otimapp PUBLIC -O3 -Wall -mtune=native -march=native)
+target_compile_features(lib-otimapp PUBLIC cxx_std_17)
+target_include_directories(lib-otimapp INTERFACE ./include)
+
+add_subdirectory(../third_party/grid-pathfinding/graph ./graph)
+target_link_libraries(lib-otimapp lib-graph)

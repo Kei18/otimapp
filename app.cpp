@@ -1,25 +1,20 @@
 #include <getopt.h>
 
-#include <cbs.hpp>
 #include <default_params.hpp>
-#include <ecbs.hpp>
-#include <hca.hpp>
-#include <icbs.hpp>
 #include <iostream>
-#include <ir.hpp>
-#include <pibt.hpp>
-#include <pibt_complete.hpp>
 #include <problem.hpp>
-#include <push_and_swap.hpp>
+#include <execution.hpp>
+#include <prioritized_planning.hpp>
+#include <fstream>
 #include <random>
-#include <revisit_pp.hpp>
 #include <vector>
-#include <whca.hpp>
-#include <winpibt.hpp>
+#include <regex>
 
 void printHelp();
 std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
                                   bool verbose, int argc, char* argv[]);
+float getUpperBoundDelayProb(const std::string& instance);
+
 
 int main(int argc, char* argv[])
 {
@@ -97,14 +92,15 @@ int main(int argc, char* argv[])
   // solve
   auto solver = getSolver(solver_name, &P, verbose, argc, argv_copy);
   solver->solve();
-  if (solver->succeed() && !solver->getSolution().validate(&P)) {
-    std::cout << "error@app: invalid results" << std::endl;
-    return 0;
-  }
   solver->printResult();
-
-  // output result
   solver->makeLog(output_file);
+
+  // emulate execution
+  if (solver->succeed()) {
+    auto exec = Execution(&P, solver->getSolution(), getUpperBoundDelayProb(instance_file));
+    exec.makeLog(output_file);
+  }
+
   if (verbose) {
     std::cout << "save result as " << output_file << std::endl;
   }
@@ -115,50 +111,26 @@ int main(int argc, char* argv[])
 std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
                                   bool verbose, int argc, char* argv[])
 {
-  std::unique_ptr<Solver> solver;
-  if (solver_name == "PIBT") {
-    solver = std::make_unique<PIBT>(P);
-  } else if (solver_name == "winPIBT") {
-    solver = std::make_unique<winPIBT>(P);
-  } else if (solver_name == "HCA") {
-    solver = std::make_unique<HCA>(P);
-  } else if (solver_name == "WHCA") {
-    solver = std::make_unique<WHCA>(P);
-  } else if (solver_name == "CBS") {
-    solver = std::make_unique<CBS>(P);
-  } else if (solver_name == "ICBS") {
-    solver = std::make_unique<ICBS>(P);
-  } else if (solver_name == "PIBT_COMPLETE") {
-    solver = std::make_unique<PIBT_COMPLETE>(P);
-  } else if (solver_name == "ECBS") {
-    solver = std::make_unique<ECBS>(P);
-  } else if (solver_name == "RevisitPP") {
-    solver = std::make_unique<RevisitPP>(P);
-  } else if (solver_name == "PushAndSwap") {
-    solver = std::make_unique<PushAndSwap>(P);
-  } else if (solver_name == "IR") {
-    solver = std::make_unique<IR>(P);
-  } else if (solver_name == "IR_SINGLE_PATHS") {
-    solver = std::make_unique<IR_SINGLE_PATHS>(P);
-  } else if (solver_name == "IR_FIX_AT_GOALS") {
-    solver = std::make_unique<IR_FIX_AT_GOALS>(P);
-  } else if (solver_name == "IR_FOCUS_GOALS") {
-    solver = std::make_unique<IR_FOCUS_GOALS>(P);
-  } else if (solver_name == "IR_MDD") {
-    solver = std::make_unique<IR_MDD>(P);
-  } else if (solver_name == "IR_BOTTLENECK") {
-    solver = std::make_unique<IR_BOTTLENECK>(P);
-  } else if (solver_name == "IR_HYBRID") {
-    solver = std::make_unique<IR_HYBRID>(P);
-  } else {
-    std::cout << "warn@app: "
-              << "unknown solver name, " + solver_name + ", continue by PIBT"
-              << std::endl;
-    solver = std::make_unique<PIBT>(P);
-  }
+  std::unique_ptr<Solver> solver = std::make_unique<PrioritizedPlanning>(P);
   solver->setParams(argc, argv);
   solver->setVerbose(verbose);
   return solver;
+}
+
+float getUpperBoundDelayProb(const std::string& instance)
+{
+  std::ifstream file(instance);
+  if (!file) {
+    std::cout << "error@app: " << instance << " cannot be opened" << std::endl;
+    std::exit(1);
+  }
+  std::regex r_pattern = std::regex(R"(ub_delay_prob=(.+))");
+  std::string line;
+  std::smatch results;
+  while (getline(file, line)) {
+    if (std::regex_match(line, results, r_pattern)) return std::stof(results[1]);
+  }
+  return DEFAULT_UB_DELAY_PROB;
 }
 
 void printHelp()
@@ -175,21 +147,4 @@ void printHelp()
                "random starts/goals"
             << "\n\nSolver Options:" << std::endl;
   // each solver
-  PIBT::printHelp();
-  winPIBT::printHelp();
-  HCA::printHelp();
-  WHCA::printHelp();
-  RevisitPP::printHelp();
-  PushAndSwap::printHelp();
-  CBS::printHelp();
-  ECBS::printHelp();
-  ICBS::printHelp();
-  PIBT_COMPLETE::printHelp();
-  IR::printHelp();
-  IR_SINGLE_PATHS::printHelp();
-  IR_FIX_AT_GOALS::printHelp();
-  IR_FOCUS_GOALS::printHelp();
-  IR_MDD::printHelp();
-  IR_BOTTLENECK::printHelp();
-  IR_HYBRID::printHelp();
 }

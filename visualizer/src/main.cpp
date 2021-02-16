@@ -3,9 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <regex>
-#include "../include/mapfplan.hpp"
+#include "../include/result.hpp"
 
-void readSetResult(const std::string& result_file, MAPFPlan* plan);
+void readSetResult(const std::string& result_file, Result* result);
 void readSetNode(const std::string& s, Config& config, Grid* G);
 
 
@@ -15,10 +15,10 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  MAPFPlan* solution = new MAPFPlan;  // deleted in ofApp destructor
-  readSetResult(argv[1], solution);
+  Result* res = new Result;  // deleted in ofApp destructor
+  readSetResult(argv[1], res);
   ofSetupOpenGL(100, 100, OF_WINDOW);
-  ofRunApp(new ofApp(solution));
+  ofRunApp(new ofApp(res));
   return 0;
 }
 
@@ -44,7 +44,7 @@ void readSetNode(const std::string& s, Config& config, Grid* G)
   }
 }
 
-void readSetResult(const std::string& result_file, MAPFPlan* plan)
+void readSetResult(const std::string& result_file, Result* res)
 {
   std::ifstream file(result_file);
   if (!file) {
@@ -61,7 +61,10 @@ void readSetResult(const std::string& result_file, MAPFPlan* plan)
   std::regex r_comp_time = std::regex(R"(comp_time=(\d+))");
   std::regex r_starts    = std::regex(R"(starts=(.+))");
   std::regex r_goals     = std::regex(R"(goals=(.+))");
-  std::regex r_sol       = std::regex(R"(solution=)");
+  std::regex r_result    = std::regex(R"(result=)");
+  std::regex r_act_cnts  = std::regex(R"(activate_cnts=(\d+))");
+  std::regex r_execution = std::regex(R"(execution.+=)");
+  std::regex r_exec_row  = std::regex(R"((\d+):\((\d+),(\d+),(\d+),(.+),(\d+)\))");
   std::regex r_config    = std::regex(R"(\d+:(.+))");
 
   std::string line;
@@ -69,58 +72,79 @@ void readSetResult(const std::string& result_file, MAPFPlan* plan)
   while (getline(file, line)) {
     // read map
     if (std::regex_match(line, results, r_map)) {
-      plan->G = new Grid(results[1].str());  // deleted in destructor of MAPFPlan
+      res->G = new Grid(results[1].str());  // deleted in destructor of MAPFPlan
       continue;
     }
     // set agent num
     if (std::regex_match(line, results, r_agents)) {
-      plan->num_agents = std::stoi(results[1].str());
+      res->num_agents = std::stoi(results[1].str());
       continue;
     }
     // solver
     if (std::regex_match(line, results, r_solver)) {
-      plan->solver = results[1].str();
+      res->solver = results[1].str();
       continue;
     }
     // solved?
     if (std::regex_match(line, results, r_solved)) {
-      plan->solved = (bool)std::stoi(results[1].str());
+      res->solved = (bool)std::stoi(results[1].str());
       continue;
     }
     // soc
     if (std::regex_match(line, results, r_soc)) {
-      plan->soc = std::stoi(results[1].str());
+      res->soc = std::stoi(results[1].str());
       continue;
     }
     // makespan
     if (std::regex_match(line, results, r_makespan)) {
-      plan->makespan = std::stoi(results[1].str());
+      res->makespan = std::stoi(results[1].str());
       continue;
     }
     // comp_time
     if (std::regex_match(line, results, r_comp_time)) {
-      plan->comp_time = std::stoi(results[1].str());
+      res->comp_time = std::stoi(results[1].str());
       continue;
     }
     // starts
     if (std::regex_match(line, results, r_starts)) {
-      readSetNode(results[1].str(), plan->config_s, plan->G);
+      readSetNode(results[1].str(), res->config_s, res->G);
       continue;
     }
     // goals
     if (std::regex_match(line, results, r_goals)) {
-      readSetNode(results[1].str(), plan->config_g, plan->G);
+      readSetNode(results[1].str(), res->config_g, res->G);
       continue;
     }
-    // solution
-    if (std::regex_match(line, results, r_sol)) {
+    // activation counts
+    if (std::regex_match(line, results, r_act_cnts)) {
+      res->activated_cnt = std::stoi(results[1].str());
+      continue;
+    }
+    // result
+    if (std::regex_match(line, results, r_result)) {
       while (getline(file, line)) {
         if (std::regex_match(line, results, r_config)) {
           Config c;
-          readSetNode(results[1].str(), c, plan->G);
-          plan->transitions.push_back(c);
+          readSetNode(results[1].str(), c, res->G);
+          res->transitions.push_back(c);
+        } else {
+          break;
         }
       }
     }
+    // execution
+    if (std::regex_match(line, results, r_execution)) {
+      while (getline(file, line)) {
+        if (std::regex_match(line, results, r_exec_row)) {
+          res->exec.push_back
+            (std::make_tuple(std::stoi(results[2]),
+                             std::stoi(results[3]),
+                             std::stoi(results[4]),
+                             std::stoi(results[5]),
+                             std::stoi(results[6])));
+        }
+      }
+    }
+
   }
 }
