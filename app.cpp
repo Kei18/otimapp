@@ -5,6 +5,7 @@
 #include <problem.hpp>
 #include <execution.hpp>
 #include <prioritized_planning.hpp>
+#include <complete_planning.hpp>
 #include <fstream>
 #include <random>
 #include <vector>
@@ -112,7 +113,18 @@ int main(int argc, char* argv[])
 std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
                                   bool verbose, int argc, char* argv[])
 {
-  std::unique_ptr<Solver> solver = std::make_unique<PrioritizedPlanning>(P);
+  std::unique_ptr<Solver> solver;
+  if (solver_name == "PrioritizedPlanning") {
+    solver = std::make_unique<PrioritizedPlanning>(P);
+  } else if (solver_name == "CompletePlanning") {
+    solver = std::make_unique<CompletePlanning>(P);
+  } else {
+    std::cout << "warn@app: "
+              << "unknown solver name, " + solver_name + ", continue by PrioritizedPlanning"
+              << std::endl;
+    solver = std::make_unique<PrioritizedPlanning>(P);
+  }
+
   solver->setParams(argc, argv);
   solver->setVerbose(verbose);
   return solver;
@@ -148,4 +160,6 @@ void printHelp()
                "random starts/goals"
             << "\n\nSolver Options:" << std::endl;
   // each solver
+  PrioritizedPlanning::printHelp();
+  CompletePlanning::printHelp();
 }

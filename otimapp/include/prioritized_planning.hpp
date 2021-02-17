@@ -4,7 +4,6 @@
 
 #pragma once
 #include "solver.hpp"
-#include <set>
 #include <deque>
 
 
@@ -20,7 +19,6 @@ private:
   void run();
 
   Path getPrioritizedPath(const int id, const Plan& paths);
-  bool naiveDetectLoop(const int id, Node* child, Node* parent, const Plan& paths) const;
 
   using Cycle = std::deque<Node*>;
   std::vector<std::vector<Cycle*>> table_cycle_tail;

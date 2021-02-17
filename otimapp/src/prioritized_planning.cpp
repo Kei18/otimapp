@@ -8,19 +8,13 @@ PrioritizedPlanning::PrioritizedPlanning(Problem* _P)
     table_cycle_tail(G->getNodesSize()),
     table_cycle_head(G->getNodesSize())
 {
-  solver_name = PrioritizedPlanning::SOLVER_NAME;
+  solver_name = SOLVER_NAME;
 }
 
 PrioritizedPlanning::~PrioritizedPlanning()
 {
   for (auto cycles : table_cycle_head) {
-    for (auto c : cycles) {
-
-      // for (auto itr = c->begin(); itr != c->end(); ++itr) std::cout << (*itr)->id << " -> ";
-      // std::cout << std::endl;
-
-      delete c;
-    }
+    for (auto c : cycles) delete c;
   }
 }
 
@@ -56,6 +50,98 @@ void PrioritizedPlanning::run()
   solution = paths;
 }
 
+Path PrioritizedPlanning::getPrioritizedPath(const int id, const Plan& paths)
+{
+  Node* const s = P->getStart(id);
+  Node* const g = P->getGoal(id);
+
+  struct AstarNode {
+    Node* v;
+    int g;
+    int f;
+    AstarNode* p;  // parent
+  };
+  using AstarNodes = std::vector<AstarNode*>;
+
+  AstarNodes GC;  // garbage collection
+  auto createNewNode = [&GC](Node* v, int g, int f, AstarNode* p) {
+    AstarNode* new_node = new AstarNode{ v, g, f, p };
+    GC.push_back(new_node);
+    return new_node;
+  };
+
+  auto compare = [&](AstarNode* a, AstarNode* b) {
+    if (a->f != b->f) return a->f > b->f;
+    if (a->g != b->g) return a->g < b->g;
+    return false;
+  };
+
+  auto checkInvalidNode = [&](Node* child, Node* parent) {
+    // condition 1, avoid goals
+    if (child != g && table_goals[child->id]) return true;
+
+    // condition 2, avoid potential deadlocks
+    if (detectLoopByCycle(id, child, parent)) return true;
+
+    return false;
+  };
+
+  // OPEN and CLOSE list
+  std::priority_queue<AstarNode*, AstarNodes, decltype(compare)> OPEN(compare);
+  std::vector<bool> CLOSE(G->getNodesSize(), false);
+
+  // initial node
+  AstarNode* n = createNewNode(s, 0, pathDist(id, s), nullptr);
+  OPEN.push(n);
+
+  // main loop
+  bool invalid = true;
+  while (!OPEN.empty()) {
+    // check time limit
+    if (overCompTime()) break;
+
+    // minimum node
+    n = OPEN.top();
+    OPEN.pop();
+
+    // check CLOSE list
+    if (CLOSE[n->v->id]) continue;
+    CLOSE[n->v->id] = true;
+
+    // check goal condition
+    if (n->v == g) {
+      invalid = false;
+      break;
+    }
+
+    // expand
+    Nodes C = n->v->neighbor;
+    std::shuffle(C.begin(), C.end(), *MT);  // randomize
+    for (auto u : C) {
+      // already searched?
+      if (CLOSE[u->id]) continue;
+      // check constraints
+      if (checkInvalidNode(u, n->v)) continue;
+      int g_cost = n->g + 1;
+      OPEN.push(createNewNode(u, g_cost, g_cost + pathDist(id, u), n));
+    }
+  }
+
+  Path path;
+  if (!invalid) {  // success
+    while (n != nullptr) {
+      path.push_back(n->v);
+      n = n->p;
+    }
+    std::reverse(path.begin(), path.end());
+  }
+
+  // free
+  for (auto p : GC) delete p;
+
+  return path;
+}
+
 bool PrioritizedPlanning::detectLoopByCycle(const int id, Node* child, Node* parent)
 {
   // check tail
@@ -69,7 +155,7 @@ bool PrioritizedPlanning::detectLoopByCycle(const int id, Node* child, Node* par
 
 void PrioritizedPlanning::registerCycle(const int id, const Path path)
 {
-  Path part_path;
+  Path part_path;  // path[0] ... path[t-1]
 
   for (int t = 1; t < (int)path.size(); ++t) {
     auto v_before = path[t-1];
@@ -169,126 +255,6 @@ void PrioritizedPlanning::registerCycle(const int id, const Path path)
       }
     }
   }
-}
-
-Path PrioritizedPlanning::getPrioritizedPath(const int id, const Plan& paths)
-{
-  Node* const s = P->getStart(id);
-  Node* const g = P->getGoal(id);
-
-  struct AstarNode {
-    Node* v;
-    int g;
-    int f;
-    AstarNode* p;  // parent
-  };
-  using AstarNodes = std::vector<AstarNode*>;
-
-  AstarNodes GC;  // garbage collection
-  auto createNewNode = [&GC](Node* v, int g, int f, AstarNode* p) {
-    AstarNode* new_node = new AstarNode{ v, g, f, p };
-    GC.push_back(new_node);
-    return new_node;
-  };
-
-  auto compare = [&](AstarNode* a, AstarNode* b) {
-    if (a->f != b->f) return a->f > b->f;
-    if (a->g != b->g) return a->g < b->g;
-    return false;
-  };
-
-  int elapsed = 0;
-
-  // TODO: develop efficient check method
-  auto checkInvalidNode = [&](Node* child, Node* parent) {
-    // condition 1, avoid goals
-    if (child != g && table_goals[child->id]) return true;
-
-    // condition 2, avoid potential deadlocks
-    // if (naiveDetectLoop(id, child, parent, paths)) return true;
-    if (detectLoopByCycle(id, child, parent)) return true;
-
-    return false;
-  };
-
-  // OPEN and CLOSE list
-  std::priority_queue<AstarNode*, AstarNodes, decltype(compare)> OPEN(compare);
-  std::vector<bool> CLOSE(G->getNodesSize(), false);
-
-  // initial node
-  AstarNode* n = createNewNode(s, 0, pathDist(id, s), nullptr);
-  OPEN.push(n);
-
-  // main loop
-  bool invalid = true;
-  while (!OPEN.empty()) {
-    // check time limit
-    if (overCompTime()) break;
-
-    // minimum node
-    n = OPEN.top();
-    OPEN.pop();
-
-    // check CLOSE list
-    if (CLOSE[n->v->id]) continue;
-    CLOSE[n->v->id] = true;
-
-    // check goal condition
-    if (n->v == g) {
-      invalid = false;
-      break;
-    }
-
-    // expand
-    Nodes C = n->v->neighbor;
-    std::shuffle(C.begin(), C.end(), *MT);  // randomize
-    for (auto u : C) {
-      // already searched?
-      if (CLOSE[u->id]) continue;
-      // check constraints
-      if (checkInvalidNode(u, n->v)) continue;
-      int g_cost = n->g + 1;
-      OPEN.push(createNewNode(u, g_cost, g_cost + pathDist(id, u), n));
-    }
-  }
-
-  Path path;
-  if (!invalid) {  // success
-    while (n != nullptr) {
-      path.push_back(n->v);
-      n = n->p;
-    }
-    std::reverse(path.begin(), path.end());
-  }
-
-  // free
-  for (auto p : GC) delete p;
-
-  // std::cout << elapsed << std::endl;
-
-  return path;
-}
-
-bool PrioritizedPlanning::naiveDetectLoop
-(const int id, Node* child, Node* parent, const Plan& paths) const
-{
-  auto detectLoop = [&] (auto&& self, Node* v_next, Node* origin, std::vector<int> _U) -> bool
-  {
-    for (int i = 0; i < P->getNum(); ++i) {
-      if (paths[i].empty() || inArray(i, _U)) continue;
-      auto p = paths[i];
-      for (int t = 0; t < p.size()-1; ++t) {
-        if (p[t] == v_next) {
-          auto U = _U;
-          U.push_back(i);
-          if (p[t+1] == origin || self(self, p[t+1], origin, U)) return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  return detectLoop(detectLoop, child, parent, { id });
 }
 
 void PrioritizedPlanning::setParams(int argc, char* argv[])
