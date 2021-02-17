@@ -39,12 +39,13 @@ Execution::State Execution::Agent::getState() const
   return std::make_tuple(id, t, mode, head, tail);
 }
 
-Execution::Execution(Problem* _P, const Plan& _plan, const float _ub_delay_prob)
+Execution::Execution(Problem* _P, const Plan& _plan, const float _ub_delay_prob, const bool _verbose)
   : P(_P),
     MT(P->getMT()),
     solution(_plan),
     ub_delay_prob(_ub_delay_prob),
-    occupancy(P->getG()->getNodesSize(), NIL)
+    occupancy(P->getG()->getNodesSize(), NIL),
+    verbose(_verbose)
 {
   // setup delay probabilities
   for (int i = 0; i < P->getNum(); ++i) {
@@ -57,7 +58,7 @@ Execution::Execution(Problem* _P, const Plan& _plan, const float _ub_delay_prob)
 
 void Execution::run()
 {
-  info("  emulate execution");
+  info("  emulate execution, ub_delay_prob=" + std::to_string(ub_delay_prob));
   t_start = Time::now();
 
   // initiate
@@ -128,9 +129,6 @@ void Execution::run()
   }
 
   emulation_time = getElapsedTime(t_start);
-  info("  elapsed: "  + std::to_string(emulation_time) + ", finish emulation" +
-       ", soc: " + std::to_string(getSOC(result)) +
-       ", makespan: " + std::to_string(result.size()-1));
 }
 
 void Execution::activate(Agent_p a)
@@ -180,6 +178,20 @@ bool Execution::isStable(Agent_p a) const
 
   // when a_j is in contracted
   return false;
+}
+
+void Execution::info(const std::string& msg) const
+{
+  if (verbose) std::cout << msg << std::endl;
+}
+
+void Execution::printResult() const
+{
+  std::cout << "finish emulation"
+            << ", elapsed: " << emulation_time
+            << ", soc: " << getSOC(result)
+            << ", makespan: " << result.size()-1
+            << std::endl;
 }
 
 void Execution::makeLog(const std::string& logfile) const

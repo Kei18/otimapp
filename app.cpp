@@ -97,7 +97,8 @@ int main(int argc, char* argv[])
 
   // emulate execution
   if (solver->succeed()) {
-    auto exec = Execution(&P, solver->getSolution(), getUpperBoundDelayProb(instance_file));
+    auto exec = Execution(&P, solver->getSolution(), getUpperBoundDelayProb(instance_file), verbose);
+    exec.printResult();
     exec.makeLog(output_file);
   }
 

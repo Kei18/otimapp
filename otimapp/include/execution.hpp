@@ -39,15 +39,17 @@ private:
   Agents A;
   std::vector<State> HIST;
   int emulation_time;
+  const bool verbose;
 
   void run();
   void activate(Agent_p a);
   bool isStable(Agent_p a) const;
-  void info(const std::string& msg) { std::cout << msg << std::endl; }
+  void info(const std::string& msg) const;
 
 public:
-  Execution(Problem* _P, const Plan& _plan, const float _ub_delay_prob=0.5);
+  Execution(Problem* _P, const Plan& _plan, const float _ub_delay_prob=0.5, const bool _verbose=false);
   ~Execution() {}
 
+  void printResult() const;
   void makeLog(const std::string& logfile = DEFAULT_OUTPUT_FILE) const;
 };
