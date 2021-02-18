@@ -19,6 +19,7 @@ PrioritizedPlanning::~PrioritizedPlanning()
 
 void PrioritizedPlanning::run()
 {
+  // shorter path is prioritized
   std::vector<int> ids(P->getNum());
   std::iota(ids.begin(), ids.end(), 0);
   std::sort(ids.begin(), ids.end(), [&](int a, int b) { return pathDist(a) < pathDist(b); });
@@ -77,103 +78,75 @@ bool PrioritizedPlanning::detectLoopByCycle(const int id, Node* child, Node* par
 
 void PrioritizedPlanning::registerCycle(const int id, const Path path)
 {
-  Path part_path;  // path[0] ... path[t-1]
+  Path path_until_t_minus_2;  // path[0] ... path[t-2]
 
+  // check duplication
+  auto existDuplication = [&] (Node* head, Node* tail)
+  {
+    auto cycles = table_cycle_head[head->id];
+    return
+      std::find_if(cycles.begin(), cycles.end(),
+                   [&tail] (CycleCandidate* c)
+                   { return c->back() == tail; }) != cycles.end();
+  };
+
+  // create new entry
+  auto createNewCycleCandidate = [&] (Node* head, CycleCandidate* c_base, Node* tail)
+  {
+    // create new one
+    auto c = new CycleCandidate;
+    if ((c_base == nullptr || head != c_base->front()) && head != nullptr) c->push_back(head);
+    if (c_base != nullptr) {
+      for (auto itr = c_base->begin(); itr != c_base->end(); ++itr) c->push_back(*itr);
+    }
+    if ((c_base == nullptr || tail != c_base->back()) && tail != nullptr) c->push_back(tail);
+
+    // check loop
+    if (c->front() == c->back()) halt("detect potential deadlock");
+
+    // register
+    table_cycle_head[c->front()->id].push_back(c);
+    table_cycle_tail[c->back()->id].push_back(c);
+  };
+
+  // avoid loop with own path
+  auto usingOwnPath = [&] (CycleCandidate* c)
+  {
+    for (auto itr = c->begin(); itr != c->end(); ++itr) {
+      if (inArray(*itr, path_until_t_minus_2)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // update cycles step by step
   for (int t = 1; t < (int)path.size(); ++t) {
     auto v_before = path[t-1];
     auto v_next = path[t];
 
-    part_path.push_back(v_before);
+    // update part of path
+    if (t >= 2) path_until_t_minus_2.push_back(path[t-2]);
 
-    // create new entry
-    {
-      // check duplication
-      auto cycles = table_cycle_head[v_before->id];
-      auto itr = std::find_if(cycles.begin(), cycles.end(),
-                              [&v_next] (Cycle* c) { return c->back() == v_next; });
-      if (itr == cycles.end()) {
-        auto c = new Cycle;
-        c->push_back(v_before);
-        c->push_back(v_next);
-        // register
-        table_cycle_tail[c->back()->id].push_back(c);
-        table_cycle_head[c->front()->id].push_back(c);
-      }
+    if (!existDuplication(v_before, v_next)) {
+      createNewCycleCandidate(v_before, nullptr, v_next);
     }
 
-    // check tail
+    // check existing cycle, tail
     if (!table_cycle_tail[v_before->id].empty()) {
       for (auto c : table_cycle_tail[v_before->id]) {
-
-        // avoid duplication
-        {
-          auto cycles = table_cycle_head[c->front()->id];
-          auto itr = std::find_if(cycles.begin(), cycles.end(),
-                                  [&v_next] (Cycle* _c) { return _c->back() == v_next; });
-          if (itr != cycles.end()) continue;
-        }
-
-        // avoid itself
-        {
-          bool use_itself = false;
-          for (auto itr = c->begin(); itr != c->end() - 1; ++itr) {
-            if (inArray(*itr, part_path)) {
-              use_itself = true;
-              break;
-            }
-          }
-          if (use_itself) continue;
-        }
-
-        // create new path
-        auto c_new = new Cycle;
-        for (auto itr = c->begin(); itr != c->end(); ++itr) c_new->push_back(*itr);
-        c_new->push_back(v_next);
-
-        // check loop
-        if (c_new->front() == c_new->back()) halt("detect potential deadlock");
-
-        // register
-        table_cycle_tail[c_new->back()->id].push_back(c_new);
-        table_cycle_head[c_new->front()->id].push_back(c_new);
+        if (existDuplication(c->front(), v_next)) continue;
+        if (usingOwnPath(c)) continue;
+        createNewCycleCandidate(nullptr, c, v_next);
       }
     }
 
-    // check head
+    // check existing cycle, head
     if (!table_cycle_head[v_next->id].empty()) {
       for (auto c : table_cycle_head[v_next->id]) {
-
-        // avoid duplication
-        {
-          auto cycles = table_cycle_tail[c->back()->id];
-          auto itr = std::find_if(cycles.begin(), cycles.end(),
-                                  [&v_before] (Cycle* _c) { return _c->front() == v_before; });
-          if (itr != cycles.end()) continue;
-        }
-
-        // avoid itself
-        {
-          bool use_itself = false;
-          for (auto itr = c->begin() + 1; itr != c->end(); ++itr) {
-            if (inArray(*itr, part_path)) {
-              use_itself = true;
-              break;
-            }
-          }
-          if (use_itself) continue;
-        }
-
-        // create new path
-        auto c_new = new Cycle;
-        for (auto itr = c->begin(); itr != c->end(); ++itr) c_new->push_back(*itr);
-        c_new->push_front(v_before);
-
-        // check loop
-        if (c_new->front() == c_new->back()) halt("detect potential deadlock");
-
-        // register
-        table_cycle_tail[c_new->back()->id].push_back(c_new);
-        table_cycle_head[c_new->front()->id].push_back(c_new);
+        if (existDuplication(v_before, c->back())) continue;
+        if (usingOwnPath(c)) continue;
+        createNewCycleCandidate(v_before, c, nullptr);
       }
     }
   }

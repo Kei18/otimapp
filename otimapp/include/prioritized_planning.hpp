@@ -16,13 +16,19 @@ private:
   // main
   void run();
 
+  // get a single-agent path
   Path getPrioritizedPath(const int id, const Plan& paths);
 
-  using Cycle = std::deque<Node*>;
-  std::vector<std::vector<Cycle*>> table_cycle_tail;
-  std::vector<std::vector<Cycle*>> table_cycle_head;
+  // to detect potential deadlocks efficiently
+  using CycleCandidate = std::deque<Node*>;
+  // potential cycles ends at the node
+  std::vector<std::vector<CycleCandidate*>> table_cycle_tail;
+  // potential cycles starts from the node
+  std::vector<std::vector<CycleCandidate*>> table_cycle_head;
 
+  // update cycle
   void registerCycle(const int id, const Path path);
+  // used in getPrioritizedPath to detect prohibited path
   bool detectLoopByCycle(const int id, Node* child, Node* parent);
 
 public:
