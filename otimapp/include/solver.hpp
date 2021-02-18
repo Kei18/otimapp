@@ -59,6 +59,10 @@ protected:
   using DistanceTable = std::vector<std::vector<int>>;  // [agent][node_id]
   DistanceTable distance_table;     // distance table
 
+  // goal location
+protected:
+  std::vector<bool> table_goals;  // generated in pre-processing, goal location
+
   // -------------------------------
   // main
 private:
@@ -89,7 +93,7 @@ protected:
   // -------------------------------
   // log
 public:
-  virtual void makeLog(const std::string& logfile = DEFAULT_OUTPUT_FILE);
+  virtual void makeLog(const std::string& logfile = DEFAULT_PLAN_OUTPUT_FILE);
 protected:
   void makeLogBasicInfo(std::ofstream& log);
   void makeLogSolution(std::ofstream& log);
@@ -122,6 +126,7 @@ public:
 public:
   // use grid-pathfinding
   Path getPath(Node* const s, Node* const g, bool cache=false) const { return G->getPath(s, g, cache); }
+  Path getPath(const int id, std::function<bool(Node*, Node*)> checkInvalidNode);
 
 public:
   Solver(Problem* _P);

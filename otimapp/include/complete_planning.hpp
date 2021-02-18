@@ -13,8 +13,6 @@ public:
   static const std::string SOLVER_NAME;
 
 private:
-  std::vector<bool> table_goals;
-
   // main
   void run();
 
@@ -55,7 +53,7 @@ private:
   using HighLevelNodes = std::vector<HighLevelNode_p>;
 
 
-  Path getPath(const int id, const Constraints& constraints={});
+  Path getConstrainedPath(const int id, const Constraints& constraints={});
   Constraints getConstraints(const Plan& paths) const;
   Constraints detectLoop
   (const Plan& paths, const Path& loop, Node* origin, const std::vector<int>& U) const;

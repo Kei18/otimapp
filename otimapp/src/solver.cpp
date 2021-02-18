@@ -40,7 +40,8 @@ int MinimumSolver::getSolverElapsedTime() const { return getElapsedTime(t_start)
 Solver::Solver(Problem* _P)
   : MinimumSolver(_P),
     verbose(false),
-    distance_table(P->getNum(), std::vector<int>(G->getNodesSize(), G->getNodesSize()))
+    distance_table(P->getNum(), std::vector<int>(G->getNodesSize(), G->getNodesSize())),
+    table_goals(G->getNodesSize(), false)
 {
 }
 
@@ -54,8 +55,9 @@ Solver::~Solver()
 void Solver::exec()
 {
   // create distance table
-  info("  pre-processing, create distance table by BFS");
+  info("  pre-processing, create distance table by BFS & create goal table");
   createDistanceTable();
+  for (int i = 0; i < P->getNum(); ++i) table_goals[P->getGoal(i)->id] = true;
   info("  done, elapsed: ", getSolverElapsedTime());
 
   // main
@@ -137,8 +139,6 @@ void Solver::makeLogSolution(std::ofstream& log)
     for (auto v : solution[i]) log << v->id << ",";
     log << "\n";
   }
-
-  // TODO: make solution
 }
 
 // -------------------------------
@@ -187,4 +187,89 @@ void Solver::createDistanceTable()
       }
     }
   }
+}
+
+// -------------------------------
+// utilities for getting path
+// -------------------------------
+Path Solver::getPath(const int id, std::function<bool(Node*, Node*)> checkInvalidNode)
+{
+  Node* const s = P->getStart(id);
+  Node* const g = P->getGoal(id);
+
+  struct AstarNode {
+    Node* v;
+    int g;
+    int f;
+    AstarNode* p;  // parent
+  };
+  using AstarNodes = std::vector<AstarNode*>;
+
+  AstarNodes GC;  // garbage collection
+  auto createNewNode = [&GC](Node* v, int g, int f, AstarNode* p) {
+    AstarNode* new_node = new AstarNode{ v, g, f, p };
+    GC.push_back(new_node);
+    return new_node;
+  };
+
+  auto compare = [&](AstarNode* a, AstarNode* b) {
+    if (a->f != b->f) return a->f > b->f;
+    if (a->g != b->g) return a->g < b->g;
+    return false;
+  };
+
+    // OPEN and CLOSE list
+  std::priority_queue<AstarNode*, AstarNodes, decltype(compare)> OPEN(compare);
+  std::vector<bool> CLOSE(G->getNodesSize(), false);
+
+  // initial node
+  AstarNode* n = createNewNode(s, 0, pathDist(id, s), nullptr);
+  OPEN.push(n);
+
+  // main loop
+  bool invalid = true;
+  while (!OPEN.empty()) {
+    // check time limit
+    if (overCompTime()) break;
+
+    // minimum node
+    n = OPEN.top();
+    OPEN.pop();
+
+    // check CLOSE list
+    if (CLOSE[n->v->id]) continue;
+    CLOSE[n->v->id] = true;
+
+    // check goal condition
+    if (n->v == g) {
+      invalid = false;
+      break;
+    }
+
+    // expand
+    Nodes C = n->v->neighbor;
+    std::shuffle(C.begin(), C.end(), *MT);  // randomize
+    for (auto u : C) {
+      // already searched?
+      if (CLOSE[u->id]) continue;
+      // check constraints
+      if (checkInvalidNode(u, n->v)) continue;
+      int g_cost = n->g + 1;
+      OPEN.push(createNewNode(u, g_cost, g_cost + pathDist(id, u), n));
+    }
+  }
+
+  Path path;
+  if (!invalid) {  // success
+    while (n != nullptr) {
+      path.push_back(n->v);
+      n = n->p;
+    }
+    std::reverse(path.begin(), path.end());
+  }
+
+  // free
+  for (auto p : GC) delete p;
+
+  return path;
 }

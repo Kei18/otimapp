@@ -1,4 +1,7 @@
 #include "../include/execution.hpp"
+#include <fstream>
+#include <regex>
+
 
 static int getSOC(const Configs& result)
 {
@@ -39,25 +42,36 @@ Execution::State Execution::Agent::getState() const
   return std::make_tuple(id, t, mode, head, tail);
 }
 
-Execution::Execution(Problem* _P, const Plan& _plan, const float _ub_delay_prob, const bool _verbose)
+Execution::Execution
+(Problem* _P, std::string _plan_file, int _seed, float _ub_delay_prob, bool _verbose)
   : P(_P),
-    MT(P->getMT()),
-    solution(_plan),
+    plan_file(_plan_file),
+    solved(getSolved()),
+    solution(getPlan()),
+    seed(_seed),
+    MT(new std::mt19937(seed)),
     ub_delay_prob(_ub_delay_prob),
-    occupancy(P->getG()->getNodesSize(), NIL),
-    verbose(_verbose)
+    verbose(_verbose),
+    occupancy(P->getG()->getNodesSize(), NIL)
 {
   // setup delay probabilities
   for (int i = 0; i < P->getNum(); ++i) {
     delay_probs.push_back(getRandomFloat(0, ub_delay_prob, MT));
   }
+}
 
-  // emulate execution
-  run();
+Execution::~Execution()
+{
+  delete MT;
 }
 
 void Execution::run()
 {
+  if (!solved) {
+    warn("  " + P->getInstanceFileName() + " is unsolved in " + plan_file);
+    return;
+  }
+
   info("  emulate execution, ub_delay_prob=" + std::to_string(ub_delay_prob));
   t_start = Time::now();
 
@@ -72,12 +86,8 @@ void Execution::run()
   // repeat activation
   Agents unstable;
   int num_goal_agents = 0;
-  // int timestep = 0;
 
   while (true) {
-
-    // info("  elapsed:" + std::to_string((int)getElapsedTime(t_start))
-    //      + ", timestep:" + std::to_string(++timestep));
 
     // step 1, check transition
     for (int i = 0; i < P->getNum(); ++i) {
@@ -185,6 +195,65 @@ void Execution::info(const std::string& msg) const
   if (verbose) std::cout << msg << std::endl;
 }
 
+void Execution::warn(const std::string& msg) const
+{
+  std::cout << "warn@Execution: " << msg << std::endl;
+}
+
+Plan Execution::getPlan() const
+{
+  std::ifstream file(plan_file);
+  if (!file) {
+    std::cout << "error@app: " << plan_file << " cannot be opened" << std::endl;
+    std::exit(1);
+  }
+
+  Plan plan;  // solution
+
+  std::regex r_plan = std::regex(R"(plan=)");
+  std::regex r_path = std::regex(R"(\d+:(.+))");
+  std::regex r_pos = std::regex(R"((\d+),)");
+
+  std::string line;
+  std::smatch results;
+  while (getline(file, line)) {
+    if (std::regex_match(line, results, r_plan)) {
+      while (getline(file, line)) {
+        if (std::regex_match(line, results, r_path)) {
+          auto s = results[1].str();
+          Path path;
+          auto iter = s.cbegin();
+          while (std::regex_search(iter, s.cend(), results, r_pos)) {
+            iter = results[0].second;
+            auto i = std::stoi(results[1].str());
+            path.push_back(P->getG()->getNode(i));
+          }
+          plan.push_back(path);
+        }
+      }
+    }
+  }
+
+  return plan;
+}
+
+bool Execution::getSolved() const
+{
+  std::ifstream file(plan_file);
+  if (!file) {
+    std::cout << "error@app: " << plan_file << " cannot be opened" << std::endl;
+    std::exit(1);
+  }
+  std::regex r_solved = std::regex(R"(solved=(\d))");
+  std::string line;
+  std::smatch results;
+  while (getline(file, line)) {
+    if (std::regex_match(line, results, r_solved))
+      return (bool)std::stoi(results[1].str());
+  }
+  return false;
+}
+
 void Execution::printResult() const
 {
   std::cout << "finish emulation"
@@ -200,9 +269,38 @@ void Execution::makeLog(const std::string& logfile) const
   const int soc = getSOC(result);
 
   std::ofstream log;
-  log.open(logfile, std::ios::app);
-  log << "emulation_time=" << emulation_time << "\n";
+  log.open(logfile, std::ios::out);
+
+  // copy plan file
+  log << "// log from " << plan_file << "\n---\n";
+  std::ifstream file(plan_file);
+  if (!file) {
+    std::cout << "error@app: " << plan_file << " cannot be opened" << std::endl;
+    std::exit(1);
+  }
+  std::string line;
+  while (getline(file, line)) log << line << "\n";
+  file.close();
+
+  // new info
+  log << "---\n// exec result" << plan_file << "\n---\n";
   log << "ub_delay_prob=" << ub_delay_prob << "\n";
+  log << "delay_probs=";
+  for (auto p : delay_probs) log << p << ",";
+  log << "\n";
+  log << "exec_seed=" << seed << "\n";
+  log << "starts=";
+  for (int i = 0; i < P->getNum(); ++i) {
+    Node* v = P->getStart(i);
+    log << "(" << v->pos.x << "," << v->pos.y << "),";
+  }
+  log << "\ngoals=";
+  for (int i = 0; i < P->getNum(); ++i) {
+    Node* v = P->getGoal(i);
+    log << "(" << v->pos.x << "," << v->pos.y << "),";
+  }
+  log << "plan=" << plan_file << "\n";
+  log << "emulation_time=" << emulation_time << "\n";
   log << "activate_cnts=" << HIST.size() << "\n";
   log << "makespan=" << result.size()-1 << "\n";
   log << "soc=" << soc << "\n";

@@ -1,9 +1,7 @@
 #include <getopt.h>
-
 #include <default_params.hpp>
 #include <iostream>
 #include <problem.hpp>
-#include <execution.hpp>
 #include <prioritized_planning.hpp>
 #include <complete_planning.hpp>
 #include <fstream>
@@ -14,13 +12,12 @@
 void printHelp();
 std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
                                   bool verbose, int argc, char* argv[]);
-float getUpperBoundDelayProb(const std::string& instance);
 
 
 int main(int argc, char* argv[])
 {
   std::string instance_file = "";
-  std::string output_file = DEFAULT_OUTPUT_FILE;
+  std::string output_file = DEFAULT_PLAN_OUTPUT_FILE;
   std::string solver_name;
   bool verbose = false;
   char* argv_copy[argc + 1];
@@ -96,15 +93,8 @@ int main(int argc, char* argv[])
   solver->printResult();
   solver->makeLog(output_file);
 
-  // emulate execution
-  if (solver->succeed()) {
-    auto exec = Execution(&P, solver->getSolution(), getUpperBoundDelayProb(instance_file), verbose);
-    exec.printResult();
-    exec.makeLog(output_file);
-  }
-
   if (verbose) {
-    std::cout << "save result as " << output_file << std::endl;
+    std::cout << "save planning result as " << output_file << std::endl;
   }
 
   return 0;
@@ -128,22 +118,6 @@ std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
   solver->setParams(argc, argv);
   solver->setVerbose(verbose);
   return solver;
-}
-
-float getUpperBoundDelayProb(const std::string& instance)
-{
-  std::ifstream file(instance);
-  if (!file) {
-    std::cout << "error@app: " << instance << " cannot be opened" << std::endl;
-    std::exit(1);
-  }
-  std::regex r_pattern = std::regex(R"(ub_delay_prob=(.+))");
-  std::string line;
-  std::smatch results;
-  while (getline(file, line)) {
-    if (std::regex_match(line, results, r_pattern)) return std::stof(results[1]);
-  }
-  return DEFAULT_UB_DELAY_PROB;
 }
 
 void printHelp()

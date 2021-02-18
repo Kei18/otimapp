@@ -8,6 +8,10 @@ add_executable(app app.cpp)
 target_compile_features(app PUBLIC cxx_std_17)
 target_link_libraries(app lib-otimapp)
 
+add_executable(exec exec.cpp)
+target_compile_features(exec PUBLIC cxx_std_17)
+target_link_libraries(exec lib-otimapp)
+
 # format
 add_custom_target(clang-format
   COMMAND clang-format -i

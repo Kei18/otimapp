@@ -13,8 +13,6 @@ public:
   static const std::string SOLVER_NAME;
 
 private:
-  std::vector<bool> table_goals;
-
   // main
   void run();
 

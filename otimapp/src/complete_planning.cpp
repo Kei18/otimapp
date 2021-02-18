@@ -5,8 +5,7 @@ const std::string CompletePlanning::SOLVER_NAME = "CompletePlanning";
 
 
 CompletePlanning::CompletePlanning(Problem* _P)
-  : Solver(_P),
-    table_goals(G->getNodesSize(), false)
+  : Solver(_P)
 {
   solver_name = SOLVER_NAME;
 }
@@ -17,8 +16,6 @@ CompletePlanning::~CompletePlanning()
 
 void CompletePlanning::run()
 {
-  for (int i = 0; i < P->getNum(); ++i) table_goals[P->getGoal(i)->id] = true;
-
   // set objective function
   auto compare = [] (HighLevelNode_p a, HighLevelNode_p b) {
     if (a->f != b->f) return a->f > b->f;  // tie-breaker
@@ -31,7 +28,7 @@ void CompletePlanning::run()
   // initial node
   HighLevelNode_p n = std::make_shared<HighLevelNode>();
   for (int i = 0; i < P->getNum(); ++i) {
-    n->paths.push_back(getPath(i));
+    n->paths.push_back(getConstrainedPath(i));
     if (n->paths[i].empty()) {
       info("  ", "failed to find a path");
       return;
@@ -70,7 +67,7 @@ void CompletePlanning::run()
       auto new_constraints = n->constraints;
       new_constraints.push_back(c);
       auto paths = n->paths;
-      paths[c->agent] = getPath(c->agent, new_constraints);
+      paths[c->agent] = getConstrainedPath(c->agent, new_constraints);
       if (paths[c->agent].empty()) continue;  // failed to find path
       int f = n->f - (n->paths[c->agent].size()-1) + (paths[c->agent].size()-1);
       auto m = std::make_shared<HighLevelNode>(paths, new_constraints, f);
@@ -83,31 +80,9 @@ void CompletePlanning::run()
   if (solved) solution = n->paths;
 }
 
-Path CompletePlanning::getPath(const int id, const Constraints& _constraints)
+Path CompletePlanning::getConstrainedPath(const int id, const Constraints& _constraints)
 {
-  Node* const s = P->getStart(id);
   Node* const g = P->getGoal(id);
-
-  struct AstarNode {
-    Node* v;
-    int g;
-    int f;
-    AstarNode* p;  // parent
-  };
-  using AstarNodes = std::vector<AstarNode*>;
-
-  AstarNodes GC;  // garbage collection
-  auto createNewNode = [&GC](Node* v, int g, int f, AstarNode* p) {
-    AstarNode* new_node = new AstarNode{ v, g, f, p };
-    GC.push_back(new_node);
-    return new_node;
-  };
-
-  auto compare = [&](AstarNode* a, AstarNode* b) {
-    if (a->f != b->f) return a->f > b->f;
-    if (a->g != b->g) return a->g < b->g;
-    return false;
-  };
 
   Constraints constraints;
   for (auto c : _constraints) {
@@ -126,60 +101,7 @@ Path CompletePlanning::getPath(const int id, const Constraints& _constraints)
     return false;
   };
 
-    // OPEN and CLOSE list
-  std::priority_queue<AstarNode*, AstarNodes, decltype(compare)> OPEN(compare);
-  std::vector<bool> CLOSE(G->getNodesSize(), false);
-
-  // initial node
-  AstarNode* n = createNewNode(s, 0, pathDist(id, s), nullptr);
-  OPEN.push(n);
-
-  // main loop
-  bool invalid = true;
-  while (!OPEN.empty()) {
-    // check time limit
-    if (overCompTime()) break;
-
-    // minimum node
-    n = OPEN.top();
-    OPEN.pop();
-
-    // check CLOSE list
-    if (CLOSE[n->v->id]) continue;
-    CLOSE[n->v->id] = true;
-
-    // check goal condition
-    if (n->v == g) {
-      invalid = false;
-      break;
-    }
-
-    // expand
-    Nodes C = n->v->neighbor;
-    std::shuffle(C.begin(), C.end(), *MT);  // randomize
-    for (auto u : C) {
-      // already searched?
-      if (CLOSE[u->id]) continue;
-      // check constraints
-      if (checkInvalidNode(u, n->v)) continue;
-      int g_cost = n->g + 1;
-      OPEN.push(createNewNode(u, g_cost, g_cost + pathDist(id, u), n));
-    }
-  }
-
-  Path path;
-  if (!invalid) {  // success
-    while (n != nullptr) {
-      path.push_back(n->v);
-      n = n->p;
-    }
-    std::reverse(path.begin(), path.end());
-  }
-
-  // free
-  for (auto p : GC) delete p;
-
-  return path;
+  return Solver::getPath(id, checkInvalidNode);
 }
 
 CompletePlanning::Constraints CompletePlanning::detectLoop

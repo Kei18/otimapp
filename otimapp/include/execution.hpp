@@ -6,6 +6,16 @@
 
 class Execution {
 private:
+  Problem* const P;
+  const std::string plan_file;
+  const bool solved;
+  const Plan solution;
+  const int seed;
+  std::mt19937* MT;
+  const float ub_delay_prob;
+  const bool verbose;
+
+
   static constexpr int NIL = -1;
 
   enum struct Mode { CONTRACTED, EXTENDED };
@@ -28,28 +38,33 @@ private:
   using Agent_p = std::shared_ptr<Agent>;
   using Agents = std::vector<Agent_p>;
 
-  Problem* P;
-  std::mt19937* MT;
-  const Plan solution;
+  // utilities
   Configs result;
-  const float ub_delay_prob;
   std::vector<int> occupancy;
   std::vector<float> delay_probs;
   Time::time_point t_start;
   Agents A;
   std::vector<State> HIST;
   int emulation_time;
-  const bool verbose;
 
-  void run();
   void activate(Agent_p a);
   bool isStable(Agent_p a) const;
+
   void info(const std::string& msg) const;
+  void warn(const std::string& msg) const;
+
+  Plan getPlan() const;
+  bool getSolved() const;
 
 public:
-  Execution(Problem* _P, const Plan& _plan, const float _ub_delay_prob=0.5, const bool _verbose=false);
-  ~Execution() {}
+  Execution(Problem* _P,
+            std::string _plan_file,
+            int _seed = DEFAULT_SEED,
+            float _ub_delay_prob = DEFAULT_UB_DELAY_PROB,
+            bool _verbose = false);
+  ~Execution();
 
+  void run();
   void printResult() const;
-  void makeLog(const std::string& logfile = DEFAULT_OUTPUT_FILE) const;
+  void makeLog(const std::string& logfile = DEFAULT_EXEC_OUTPUT_FILE) const;
 };
