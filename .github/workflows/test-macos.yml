@@ -6,7 +6,7 @@ on:
       - dev
       - public
     paths:
-      - 'mapf/**'
+      - 'otimapp/**'
       - 'tests/**'
       - 'app.cpp'
       - '.github/workflows/test-macos.yml'
