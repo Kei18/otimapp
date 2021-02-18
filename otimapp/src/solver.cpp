@@ -193,30 +193,26 @@ void Solver::createDistanceTable()
 // -------------------------------
 // utilities for getting path
 // -------------------------------
-Path Solver::getPath(const int id, std::function<bool(Node*, Node*)> checkInvalidNode)
+Solver::CompareAstarNodes Solver::compareAstarNodesDefault =
+  [](AstarNode* a, AstarNode* b) {
+    if (a->f != b->f) return a->f > b->f;
+    if (a->g != b->g) return a->g < b->g;
+    return false;
+  };
+
+Path Solver::getPath
+(const int id,
+ CheckInvalidMove checkInvalidNode,
+ CompareAstarNodes compare)
 {
   Node* const s = P->getStart(id);
   Node* const g = P->getGoal(id);
-
-  struct AstarNode {
-    Node* v;
-    int g;
-    int f;
-    AstarNode* p;  // parent
-  };
-  using AstarNodes = std::vector<AstarNode*>;
 
   AstarNodes GC;  // garbage collection
   auto createNewNode = [&GC](Node* v, int g, int f, AstarNode* p) {
     AstarNode* new_node = new AstarNode{ v, g, f, p };
     GC.push_back(new_node);
     return new_node;
-  };
-
-  auto compare = [&](AstarNode* a, AstarNode* b) {
-    if (a->f != b->f) return a->f > b->f;
-    if (a->g != b->g) return a->g < b->g;
-    return false;
   };
 
     // OPEN and CLOSE list

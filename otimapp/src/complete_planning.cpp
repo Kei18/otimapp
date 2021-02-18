@@ -76,13 +76,13 @@ CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
 {
   auto n = std::make_shared<HighLevelNode>();
   for (int i = 0; i < P->getNum(); ++i) {
-    n->paths.push_back(getConstrainedPath(i));
+    n->paths.push_back(getConstrainedPath(i, n));
     if (n->paths[i].empty()) {
       n->valid = false;
       break;
     }
-    n->f += n->paths[i].size()-1;
   }
+  n->f = countsSwapConlicts(n->paths);
   return n;
 }
 
@@ -91,34 +91,53 @@ CompletePlanning::HighLevelNode_p CompletePlanning::invoke(HighLevelNode_p n, Co
   auto new_constraints = n->constraints;
   new_constraints.push_back(c);
   auto paths = n->paths;
-  paths[c->agent] = getConstrainedPath(c->agent, new_constraints);
+  paths[c->agent] = getConstrainedPath(c->agent, n);
   bool valid = !paths[c->agent].empty();
-  int f = n->f - (n->paths[c->agent].size()-1) + (paths[c->agent].size()-1);
+  int f = countsSwapConlicts(c->agent, n->f, n->paths, paths[c->agent]);
   return std::make_shared<HighLevelNode>(paths, new_constraints, f, valid);
 }
 
-Path CompletePlanning::getConstrainedPath(const int id, const Constraints& _constraints)
+Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
 {
   Node* const g = P->getGoal(id);
 
   Constraints constraints;
-  for (auto c : _constraints) {
+  for (auto c : node->constraints) {
     if (c->agent == id) constraints.push_back(c);
   }
-
-  auto checkInvalidNode = [&](Node* child, Node* parent) {
+  auto checkInvalidMove = [&](Node* child, Node* parent) {
     // condition 1, avoid goals
     if (child != g && table_goals[child->id]) return true;
-
     // condition 2, follow limitation
     for (auto c : constraints) {
       if (c->child  == child && c->parent == parent) return true;
     }
-
     return false;
   };
 
-  return Solver::getPath(id, checkInvalidNode);
+  // create heuristics
+  std::vector<std::vector<int>> from_to_table(G->getNodesSize());
+  for (int i = 0; i < (int)node->paths.size(); ++i) {
+    if (i == id) continue;
+    auto p = node->paths[i];
+    for (int t = 1; t < (int)p.size(); ++t) {
+      from_to_table[p[t-1]->id].push_back(p[t]->id);
+    }
+  }
+
+  auto compare = [&from_to_table](AstarNode* a, AstarNode* b) {
+    if (a->f != b->f) return a->f > b->f;
+    // tie break
+    auto table_a = from_to_table[a->p->v->id];
+    auto table_b = from_to_table[a->p->v->id];
+    bool swap_a = std::find(table_a.begin(), table_a.end(), a->v->id) != table_a.end();
+    bool swap_b = std::find(table_b.begin(), table_b.end(), b->v->id) != table_b.end();
+    if (swap_a != swap_b) return (int)swap_a < (int)swap_b;
+    if (a->g != b->g) return a->g < b->g;
+    return false;
+  };
+
+  return Solver::getPath(id, checkInvalidMove, compare);
 }
 
 CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths) const
@@ -235,9 +254,47 @@ CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths
   return constraints;
 }
 
+int CompletePlanning::countsSwapConlicts(const Plan& paths)
+{
+  // TODO: develop efficient counts method
+  int cnt = 0;
+  const int num_agents = paths.size();
+  for (int i = 0; i < num_agents; ++i) {
+    for (int j = i + 1; j < num_agents; ++j) {
+      for (int k = 1; k < (int)paths[i].size(); ++k) {
+        for (int l = 1; l < (int)paths[j].size(); ++l) {
+          if (paths[i][k-1] == paths[j][l] && paths[i][k] == paths[j][l-1]) ++cnt;
+        }
+      }
+    }
+  }
+  return cnt;
+}
+
+int CompletePlanning::countsSwapConlicts
+(const int id, const int old_f_val, const Plan& old_paths, const Path& new_path)
+{
+  int cnt = old_f_val;
+  const int num_agents = old_paths.size();
+
+  // count old_conflicts
+  for (int j = 0; j < num_agents; ++j) {
+    if (j == id) continue;
+    for (int l = 1; l < (int)old_paths[j].size(); ++l) {
+      for (int k = 1; k < (int)old_paths[id].size(); ++k) {
+        if (old_paths[id][k-1] == old_paths[j][l] && old_paths[id][k] == old_paths[j][l-1]) --cnt;
+      }
+      for (int k = 1; k < (int)new_path.size(); ++k) {
+        if (new_path[k-1] == old_paths[j][l] && new_path[k] == old_paths[j][l-1]) ++cnt;
+      }
+    }
+  }
+
+  return cnt;
+}
+
 void CompletePlanning::setParams(int argc, char* argv[])
 {
-
 }
 
 void CompletePlanning::printHelp()

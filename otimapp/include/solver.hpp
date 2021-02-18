@@ -126,7 +126,22 @@ public:
 public:
   // use grid-pathfinding
   Path getPath(Node* const s, Node* const g, bool cache=false) const { return G->getPath(s, g, cache); }
-  Path getPath(const int id, std::function<bool(Node*, Node*)> checkInvalidNode);
+  // A-star search
+  struct AstarNode {
+    Node* v;
+    int g;
+    int f;
+    AstarNode* p;  // parent
+  };
+  using AstarNodes = std::vector<AstarNode*>;
+  using CheckInvalidMove = std::function<bool(Node*, Node*)>;
+  using CompareAstarNodes = std::function<bool(AstarNode*, AstarNode*)>;
+
+  static CompareAstarNodes compareAstarNodesDefault;
+
+  Path getPath(const int id,
+               CheckInvalidMove checkInvalidMove,
+               CompareAstarNodes compare = compareAstarNodesDefault);
 
 public:
   Solver(Problem* _P);

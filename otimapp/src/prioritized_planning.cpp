@@ -19,33 +19,55 @@ PrioritizedPlanning::~PrioritizedPlanning()
 
 void PrioritizedPlanning::run()
 {
-  // shorter path is prioritized
-  std::vector<int> ids(P->getNum());
-  std::iota(ids.begin(), ids.end(), 0);
-  std::sort(ids.begin(), ids.end(), [&](int a, int b) { return pathDist(a) < pathDist(b); });
+  // id_list
+  std::vector<int> id_list(P->getNum());
+  std::iota(id_list.begin(), id_list.end(), 0);
 
-  std::vector<Path> paths(P->getNum());
+  const int nodes_size = G->getNodesSize();
 
-  // main
-  for (int j = 0; j < P->getNum(); ++j) {
-    const int i = ids[j];
+  int itr_cnt = 0;
+  while (!solved && !overCompTime()) {
+    ++itr_cnt;
 
-    info(" ", "elapsed:", getSolverElapsedTime(),
-         ", agent-" + std::to_string(i), "starts planning,",
-         "init-dist:", pathDist(i), ", progress:", j + 1, "/", P->getNum());
-    paths[i] = getPrioritizedPath(i, paths);
+    // randomize order
+    std::shuffle(id_list.begin(), id_list.end(), *MT);
 
-    registerCycle(i, paths[i]);
+    // initialize
+    solution.clear();
+    solution.resize(P->getNum());
 
-    // failed
-    if (paths[i].empty()) {
-      info(" ", "failed to find a path");
-      return;
+    // main
+    bool invalid = false;
+    for (int j = 0; j < P->getNum(); ++j) {
+      const int i = id_list[j];
+
+      info(" ", "elapsed:", getSolverElapsedTime(),
+           ", iter:", itr_cnt,
+           ", agent-" + std::to_string(i), "starts planning,",
+           "init-dist:", pathDist(i), ", progress:", j + 1, "/", P->getNum());
+      solution[i] = getPrioritizedPath(i, solution);
+
+      registerCycle(i, solution[i]);
+
+      // failed
+      if (solution[i].empty() || overCompTime()) {
+        invalid = true;
+        break;
+      }
+    }
+
+    if (invalid) {
+      // clear tables
+      for (int k = 0; k < nodes_size; ++k) {
+        for (auto c : table_cycle_tail[k]) delete c;
+        table_cycle_tail[k].clear();
+        table_cycle_head[k].clear();
+      }
+    } else {
+      // success
+      solved = true;
     }
   }
-
-  solved = true;
-  solution = paths;
 }
 
 Path PrioritizedPlanning::getPrioritizedPath(const int id, const Plan& paths)

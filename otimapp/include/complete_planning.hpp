@@ -52,8 +52,13 @@ private:
 
   HighLevelNode_p getInitialNode();
   HighLevelNode_p invoke(HighLevelNode_p n, Constraint_p c);
-  Path getConstrainedPath(const int id, const Constraints& constraints={});
+  Path getConstrainedPath(const int id, HighLevelNode_p node);
   Constraints getConstraints(const Plan& paths) const;
+
+  static int countsSwapConlicts(const Plan& paths);
+  static int countsSwapConlicts
+  (const int id, const int old_f_val, const Plan& old_paths, const Path& new_path);
+
 
 public:
   CompletePlanning(Problem* _P);
