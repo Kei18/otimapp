@@ -115,6 +115,7 @@ void Solver::makeLogBasicInfo(std::ofstream& log)
   log << "instance=" << P->getInstanceFileName() << "\n";
   log << "agents=" << P->getNum() << "\n";
   log << "map_file=" << grid->getMapFileName() << "\n";
+  log << "seed=" << P->getSeed() << "\n";
   log << "solver=" << solver_name << "\n";
   log << "solved=" << solved << "\n";
   log << "comp_time=" << getCompTime() << "\n";

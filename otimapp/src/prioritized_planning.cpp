@@ -113,9 +113,7 @@ void PrioritizedPlanning::registerCycle(const int id, const Path path)
   auto usingOwnPath = [&] (CycleCandidate* c)
   {
     for (auto itr = c->begin(); itr != c->end(); ++itr) {
-      if (inArray(*itr, path_until_t_minus_2)) {
-        return true;
-      }
+      if (inArray(*itr, path_until_t_minus_2)) return true;
     }
     return false;
   };

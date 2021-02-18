@@ -22,8 +22,7 @@ private:
     Node* child;
 
     Constraint(int i, Node* u, Node* v)
-      : agent(i), parent(u), child(v)
-    {}
+      : agent(i), parent(u), child(v) {}
 
     void println()
     {
@@ -40,23 +39,21 @@ private:
   struct HighLevelNode {
     Plan paths;
     Constraints constraints;
-    int f;  // TODO: set efficient f
+    int f;                     // sum of path lengths
+    bool valid;
 
     HighLevelNode()
-      : constraints({}), f(0)
-    {}
-    HighLevelNode(const Plan& p, Constraints c, int _f)
-      : paths(p), constraints(c), f(_f)
-    {}
+      : constraints({}), f(0), valid(true) {}
+    HighLevelNode(const Plan& p, Constraints c, int _f, bool _valid)
+      : paths(p), constraints(c), f(_f), valid(_valid) {}
   };
   using HighLevelNode_p = std::shared_ptr<HighLevelNode>;
   using HighLevelNodes = std::vector<HighLevelNode_p>;
 
-
+  HighLevelNode_p getInitialNode();
+  HighLevelNode_p invoke(HighLevelNode_p n, Constraint_p c);
   Path getConstrainedPath(const int id, const Constraints& constraints={});
   Constraints getConstraints(const Plan& paths) const;
-  Constraints detectLoop
-  (const Plan& paths, const Path& loop, Node* origin, const std::vector<int>& U) const;
 
 public:
   CompletePlanning(Problem* _P);

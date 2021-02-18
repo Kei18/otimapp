@@ -24,6 +24,7 @@ private:
 
   // set starts and goals randomly
   void setRandomStartsGoals();
+  void setWellFormedInstance();
 
   // utilities
   void halt(const std::string& msg) const;
@@ -42,6 +43,7 @@ public:
   Config getConfigGoal() const { return config_g; };
   int getMaxCompTime() const { return max_comp_time; };
   std::string getInstanceFileName() const { return instance; };
+  int getSeed() const { return seed; };
 
   void setMaxCompTime(const int t) { max_comp_time = t; }
 

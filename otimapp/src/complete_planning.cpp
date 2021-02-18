@@ -18,7 +18,7 @@ void CompletePlanning::run()
 {
   // set objective function
   auto compare = [] (HighLevelNode_p a, HighLevelNode_p b) {
-    if (a->f != b->f) return a->f > b->f;  // tie-breaker
+    if (a->f != b->f) return a->f > b->f;
     return false;
   };
 
@@ -26,14 +26,10 @@ void CompletePlanning::run()
   std::priority_queue<HighLevelNode_p, HighLevelNodes, decltype(compare)> Tree(compare);
 
   // initial node
-  HighLevelNode_p n = std::make_shared<HighLevelNode>();
-  for (int i = 0; i < P->getNum(); ++i) {
-    n->paths.push_back(getConstrainedPath(i));
-    if (n->paths[i].empty()) {
-      info("  ", "failed to find a path");
-      return;
-    }
-    n->f += n->paths[i].size()-1;
+  auto n = getInitialNode();
+  if (!n->valid) {
+    info("  ", "failed to find a path");
+    return;
   }
   Tree.push(n);
 
@@ -53,7 +49,8 @@ void CompletePlanning::run()
 
     info(" ", "elapsed:", getSolverElapsedTime(),
          ", explored_node_num:", iteration, ", nodes_num:", h_node_num,
-         ", constraints:", n->constraints.size());
+         ", constraints:", n->constraints.size(),
+         ", f:", n->f);
 
     // check conflict
     auto constraints = getConstraints(n->paths);
@@ -64,20 +61,40 @@ void CompletePlanning::run()
 
     // create new nodes
     for (auto c : constraints) {
-      auto new_constraints = n->constraints;
-      new_constraints.push_back(c);
-      auto paths = n->paths;
-      paths[c->agent] = getConstrainedPath(c->agent, new_constraints);
-      if (paths[c->agent].empty()) continue;  // failed to find path
-      int f = n->f - (n->paths[c->agent].size()-1) + (paths[c->agent].size()-1);
-      auto m = std::make_shared<HighLevelNode>(paths, new_constraints, f);
-      Tree.push(m);
-      ++h_node_num;
+      auto m = invoke(n, c);
+      if (m->valid) {
+        Tree.push(m);
+        ++h_node_num;
+      }
     }
-
   }
 
   if (solved) solution = n->paths;
+}
+
+CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
+{
+  auto n = std::make_shared<HighLevelNode>();
+  for (int i = 0; i < P->getNum(); ++i) {
+    n->paths.push_back(getConstrainedPath(i));
+    if (n->paths[i].empty()) {
+      n->valid = false;
+      break;
+    }
+    n->f += n->paths[i].size()-1;
+  }
+  return n;
+}
+
+CompletePlanning::HighLevelNode_p CompletePlanning::invoke(HighLevelNode_p n, Constraint_p c)
+{
+  auto new_constraints = n->constraints;
+  new_constraints.push_back(c);
+  auto paths = n->paths;
+  paths[c->agent] = getConstrainedPath(c->agent, new_constraints);
+  bool valid = !paths[c->agent].empty();
+  int f = n->f - (n->paths[c->agent].size()-1) + (paths[c->agent].size()-1);
+  return std::make_shared<HighLevelNode>(paths, new_constraints, f, valid);
 }
 
 Path CompletePlanning::getConstrainedPath(const int id, const Constraints& _constraints)
@@ -104,54 +121,118 @@ Path CompletePlanning::getConstrainedPath(const int id, const Constraints& _cons
   return Solver::getPath(id, checkInvalidNode);
 }
 
-CompletePlanning::Constraints CompletePlanning::detectLoop
-(const Plan& paths, const Path& loop, Node* origin, const std::vector<int>& U) const
+CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths) const
 {
-  auto _U = U;
+  Constraints constraints = {};
+
+  Path path_until_t_minus_2;  // path[0] ... path[t-2]
+
+  struct CycleCandidate {
+    std::deque<Node*> path;
+    std::deque<int> agents;
+
+    CycleCandidate() {}
+  };
+  using CycleCandidate_p = std::shared_ptr<CycleCandidate>;
+  std::vector<std::vector<CycleCandidate_p>> table_cycle_tail(G->getNodesSize());
+  std::vector<std::vector<CycleCandidate_p>> table_cycle_head(G->getNodesSize());
+
+  // check duplication
+  auto existDuplication = [&] (Node* head, Node* tail)
+  {
+    auto cycles = table_cycle_head[head->id];
+    return
+      std::find_if(cycles.begin(), cycles.end(),
+                   [&tail] (CycleCandidate_p c)
+                   { return c->path.back() == tail; }) != cycles.end();
+  };
+
+  // create new entry
+  auto createNewCycleCandidate = [&] (int id, Node* head, CycleCandidate_p c_base, Node* tail)
+  {
+    // create new entry
+    auto c = std::make_shared<CycleCandidate>();
+
+    // agent
+    if (c_base != nullptr) c->agents = c_base->agents;
+    if (tail != nullptr) {
+      c->agents.push_back(id);
+    } else {  // head != nullptr
+      c->agents.push_front(id);
+    }
+
+    // path
+    if ((c_base == nullptr || head != c_base->path.front()) && head != nullptr)
+      c->path.push_back(head);
+    if (c_base != nullptr)
+      for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) c->path.push_back(*itr);
+    if ((c_base == nullptr || tail != c_base->path.back()) && tail != nullptr)
+      c->path.push_back(tail);
+
+    // register
+    table_cycle_head[c->path.front()->id].push_back(c);
+    table_cycle_tail[c->path.back()->id].push_back(c);
+
+    // detect deadlock
+    if (c->path.front() == c->path.back()) {
+      // create constraints
+      for (int i = 0; i < c->agents.size(); ++i) {
+        constraints.push_back(std::make_shared<Constraint>(c->agents[i], c->path[i], c->path[i+1]));
+      }
+    }
+  };
+
+  // avoid loop with own path
+  auto usingOwnPath = [&] (CycleCandidate_p c)
+  {
+    for (auto itr = c->path.begin(); itr != c->path.end(); ++itr) {
+      if (inArray(*itr, path_until_t_minus_2)) return true;
+    }
+    return false;
+  };
+
 
   for (int i = 0; i < P->getNum(); ++i) {
-    if (inArray(i, U)) continue;
+    auto path = paths[i];
 
-    _U.push_back(i);
+    // update cycles step by step
+    for (int t = 1; t < (int)path.size(); ++t) {
+      auto v_before = path[t-1];
+      auto v_next = path[t];
 
-    auto p = paths[i];
-    for (int t = 0; t < p.size()-1; ++t) {
-      if (p[t] == *(loop.end()-1)) {
-        if (p[t+1] == origin) {
-          // create constraints
-          Constraints constraints = { std::make_shared<Constraint>(U[0], origin, loop[0]) };
-          for (int j = 1; j < U.size(); ++j) {
-            constraints.push_back( std::make_shared<Constraint>(U[j], loop[j-1], loop[j]) );
-          }
-          constraints.push_back( std::make_shared<Constraint>(i, p[t], p[t+1]) );
-          return constraints;
-        } else {
-          Path _loop = loop;
-          _loop.push_back(p[t+1]);
-          auto res = detectLoop(paths, _loop, origin, _U);
-          if (!res.empty()) return res;
+      // update part of path
+      if (t >= 2) path_until_t_minus_2.push_back(path[t-2]);
+
+      if (!existDuplication(v_before, v_next)) {
+        createNewCycleCandidate(i, v_before, nullptr, v_next);
+        if (!constraints.empty()) return constraints;
+      }
+
+      // check existing cycle, tail
+      if (!table_cycle_tail[v_before->id].empty()) {
+        for (auto c : table_cycle_tail[v_before->id]) {
+          if (existDuplication(c->path.front(), v_next)) continue;
+          if (usingOwnPath(c)) continue;
+          createNewCycleCandidate(i, nullptr, c, v_next);
+          if (!constraints.empty()) return constraints;
+        }
+      }
+
+      // check existing cycle, head
+      if (!table_cycle_head[v_next->id].empty()) {
+        for (auto c : table_cycle_head[v_next->id]) {
+          if (existDuplication(v_before, c->path.back())) continue;
+          if (usingOwnPath(c)) continue;
+          createNewCycleCandidate(i, v_before, c, nullptr);
+          if (!constraints.empty()) return constraints;
         }
       }
     }
 
-    _U.erase(_U.end()-1);
-  }
-  return {};
-}
-
-CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths) const
-{
-  for (int i = 0; i < P->getNum(); ++i) {
-    auto p = paths[i];
-    for (int t = 1; t < p.size(); ++t) {
-      Node* v_before = p[t-1];
-      Node* v_next = p[t];
-      auto res = detectLoop(paths, { v_next }, v_before, { i });
-      if (!res.empty()) return res;
-    }
+    path_until_t_minus_2.clear();
   }
 
-  return {};
+  return constraints;
 }
 
 void CompletePlanning::setParams(int argc, char* argv[])

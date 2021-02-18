@@ -22,9 +22,11 @@ Problem::Problem(const std::string& _instance)
   std::regex r_seed = std::regex(R"(seed=(\d+))");
   std::regex r_random_problem = std::regex(R"(random_problem=(\d+))");
   std::regex r_max_comp_time = std::regex(R"(max_comp_time=(\d+))");
+  std::regex r_well_formed = std::regex(R"(well_formed=(\d+))");
   std::regex r_sg = std::regex(R"((\d+),(\d+),(\d+),(\d+))");
 
   bool read_scen = true;
+  bool well_formed = false;
   while (getline(file, line)) {
     // for CRLF coding
     if (*(line.end() - 1) == 0x0d) line.pop_back();
@@ -62,6 +64,11 @@ Problem::Problem(const std::string& _instance)
       max_comp_time = std::stoi(results[1].str());
       continue;
     }
+    // well formed instance
+    if (std::regex_match(line, results, r_well_formed)) {
+      well_formed = (bool)std::stoi(results[1].str());
+      continue;
+    }
     // read initial/goal nodes
     if (std::regex_match(line, results, r_sg) && read_scen &&
         (int)config_s.size() < num_agents) {
@@ -93,7 +100,13 @@ Problem::Problem(const std::string& _instance)
   if (!config_s.empty() && num_agents > (int)config_s.size()) {
     warn("given starts/goals are not sufficient\nrandomly create instances");
   }
-  if (num_agents > (int)config_s.size()) setRandomStartsGoals();
+  if (num_agents > (int)config_s.size()) {
+    if (well_formed) {
+      setWellFormedInstance();
+    } else {
+      setRandomStartsGoals();
+    }
+  }
 
   // trimming
   config_s.resize(num_agents);
@@ -125,8 +138,7 @@ void Problem::setRandomStartsGoals()
   config_g.clear();
 
   // get grid size
-  Grid* grid = reinterpret_cast<Grid*>(G);
-  const int N = grid->getWidth() * grid->getHeight();
+  const int N = G->getNodesSize();
 
   // set starts
   std::vector<int> starts(N);
@@ -153,20 +165,65 @@ void Problem::setRandomStartsGoals()
       ++j;
       if (j >= N) halt("set goal, number of agents is too large.");
     }
-    // retry
-    if (G->getNode(goals[j]) == config_s[config_g.size()]) {
+
+    auto g = G->getNode(goals[j]);
+    auto s = config_s[config_g.size()];
+    if (s == g) {
       config_g.clear();
       std::shuffle(goals.begin(), goals.end(), *MT);
       j = 0;
       continue;
     }
-    config_g.push_back(G->getNode(goals[j]));
+    config_g.push_back(g);
     if ((int)config_g.size() == num_agents) break;
     ++j;
   }
 }
 
-// I know that using "const" is something wired...
+/*
+ * Note: it is hard to generate well-formed instances
+ * with dense situations (e.g., ≥300 agents in arena)
+ */
+void Problem::setWellFormedInstance()
+{
+  // initialize
+  config_s.clear();
+  config_g.clear();
+
+  // get grid size
+  const int N = G->getNodesSize();
+  Nodes prohibited, starts_goals;
+
+  while ((int)config_g.size() < getNum()) {
+    while (true) {
+      // determine start
+      Node* s;
+      do {
+        s = G->getNode(getRandomInt(0, N - 1, MT));
+      } while (s == nullptr || inArray(s, prohibited));
+
+      // determine goal
+      Node* g;
+      do {
+        g = G->getNode(getRandomInt(0, N - 1, MT));
+      } while (g == nullptr || g == s || inArray(g, prohibited));
+
+      // ensure well formed property
+      auto path = G->getPath(s, g, starts_goals);
+      if (!path.empty()) {
+        config_s.push_back(s);
+        config_g.push_back(g);
+        starts_goals.push_back(s);
+        starts_goals.push_back(g);
+        for (auto v : path) {
+          if (!inArray(v, prohibited)) prohibited.push_back(v);
+        }
+        break;
+      }
+    }
+  }
+}
+
 void Problem::halt(const std::string& msg) const
 {
   std::cout << "error@Problem: " << msg << std::endl;
