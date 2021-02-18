@@ -1,0 +1,11 @@
+instance=../tests/instances/toy_problem.txt
+agents=2
+map_file=8x8.map
+solver=PrioritizedPlanning
+solved=1
+comp_time=0
+starts=(0,0),(1,1),
+goals=(1,0),(0,1),
+plan=
+0:0,1,
+1:9,8,

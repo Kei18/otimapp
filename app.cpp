@@ -104,9 +104,9 @@ std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
                                   bool verbose, int argc, char* argv[])
 {
   std::unique_ptr<Solver> solver;
-  if (solver_name == "PrioritizedPlanning") {
+  if (solver_name == "PP") {
     solver = std::make_unique<PrioritizedPlanning>(P);
-  } else if (solver_name == "CompletePlanning") {
+  } else if (solver_name == "CP") {
     solver = std::make_unique<CompletePlanning>(P);
   } else {
     std::cout << "warn@app: "

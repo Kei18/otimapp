@@ -3,56 +3,34 @@
 #include <memory>
 #include <fstream>
 #include "problem.hpp"
+#include "agent.hpp"
+#include "lib_execution.hpp"
 
 class Execution {
 private:
-  Problem* const P;
-  const std::string plan_file;
-  const bool solved;
-  const Plan solution;
-  const int seed;
-  std::mt19937* MT;
-  const float ub_delay_prob;
-  const bool verbose;
+  Problem* const P;              // problem instance
+  const std::string plan_file;   // file of planning result
+  const bool solved;             // check validity of the plan
+  const Plan plan;               // planning
+  const int seed;                // seed
+  std::mt19937* MT;              // seed
+  const float ub_delay_prob;     // upper bound of delay probabilities
+  const bool verbose;            // print info or not
 
+  Configs exec_result;             // execution result
+  std::vector<int> occupancy;      // occupancy[node_id] = agent_id or Agent::NIL
+  std::vector<float> delay_probs;  // array of delay probabilities
+  std::vector<Agent::State> HIST;  // execution history
+  int emulation_time;              // time required for emulation
 
-  static constexpr int NIL = -1;
-
-  enum struct Mode { CONTRACTED, EXTENDED };
-  using State = std::tuple<int, int, Mode, Node*, Node*>;  // id, t, mode, head, tail
-  struct Agent {
-    int id;
-    int t;
-    Mode mode;
-    Node* head;
-    Node* tail;
-    Path path;
-
-    Agent(int _id, const Path& _path);
-    ~Agent() {}
-
-    Node* getNextNode() const;
-    bool isFinished() const;
-    State getState() const;
-  };
-  using Agent_p = std::shared_ptr<Agent>;
-  using Agents = std::vector<Agent_p>;
-
-  // utilities
-  Configs result;
-  std::vector<int> occupancy;
-  std::vector<float> delay_probs;
-  Time::time_point t_start;
-  Agents A;
-  std::vector<State> HIST;
-  int emulation_time;
-
-  void activate(Agent_p a);
-  bool isStable(Agent_p a) const;
-
+  // -------------------------------
+  // utilities for debug
   void info(const std::string& msg) const;
   void warn(const std::string& msg) const;
+  void halt(const std::string& msg) const;
 
+  // -------------------------------
+  // read planning
   Plan getPlan() const;
   bool getSolved() const;
 
@@ -64,7 +42,16 @@ public:
             bool _verbose = false);
   ~Execution();
 
+  // -------------------------------
+  // main
   void run();
+
+  // -------------------------------
+  // getter
+  Plan getExecResult() const { return exec_result; }
+
+  // -------------------------------
+  // others
   void printResult() const;
   void makeLog(const std::string& logfile = DEFAULT_EXEC_OUTPUT_FILE) const;
 };

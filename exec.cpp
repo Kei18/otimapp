@@ -6,7 +6,6 @@
 #include <execution.hpp>
 
 void printHelp();
-float getUpperBoundDelayProb(const std::string& instance);
 
 
 int main(int argc, char* argv[])
@@ -23,7 +22,7 @@ int main(int argc, char* argv[])
       {"plan", required_argument, 0, 'p'},
       {"output", required_argument, 0, 'o'},
       {"seed", required_argument, 0, 's'},
-      {"ub_delay_prob", required_argument, 0, 'u'},
+      {"ub-delay-prob", required_argument, 0, 'u'},
       {"verbose", no_argument, 0, 'v'},
       {"help", no_argument, 0, 'h'},
       {0, 0, 0, 0},
@@ -32,7 +31,7 @@ int main(int argc, char* argv[])
   // command line args
   int opt, longindex;
   opterr = 0;  // ignore getopt error
-  while ((opt = getopt_long(argc, argv, "i:p:o:s:VHF:", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(argc, argv, "i:p:o:s:u:vh", longopts, &longindex)) != -1) {
     switch (opt) {
       case 'i':
         instance_file = std::string(optarg);
@@ -67,7 +66,6 @@ int main(int argc, char* argv[])
     return 0;
   }
 
-
   // read original problem
   Problem P = Problem(instance_file);
 
@@ -83,46 +81,16 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-std::tuple<bool, Plan> getPlan(const std::string& filename, Problem* P)
-{
-  std::ifstream file(filename);
-  if (!file) {
-    std::cout << "error@app: " << filename << " cannot be opened" << std::endl;
-    std::exit(1);
-  }
-
-  bool solved = false;
-  Plan plan;  // solution
-
-  std::regex r_solved = std::regex(R"(solved=(\d))");
-  std::regex r_plan = std::regex(R"(plan=)");
-  std::regex r_path = std::regex(R"(\d+:(.+))");
-  std::regex r_pos = std::regex(R"((\d+),)");
-
-  std::string line;
-  std::smatch results;
-  while (getline(file, line)) {
-    if (std::regex_match(line, results, r_solved)) solved = (bool)std::stoi(results[1].str());
-    if (std::regex_match(line, results, r_plan)) {
-      while (getline(file, line)) {
-        if (std::regex_match(line, results, r_path)) {
-          auto s = results[1].str();
-          Path path;
-          auto iter = s.cbegin();
-          while (std::regex_search(iter, s.cend(), results, r_pos)) {
-            iter = results[0].second;
-            auto i = std::stoi(results[1].str());
-            path.push_back(P->getG()->getNode(i));
-          }
-          plan.push_back(path);
-        }
-      }
-    }
-  }
-
-  return std::make_tuple(solved, plan);
-}
-
 void printHelp()
 {
+  std::cout << "\nUsage: ./exec [OPTIONS]\n"
+            << "\n**instance and planning file is necessary to run execution simulator**\n\n"
+            << "  -i --instance [FILE_PATH]     instance file path\n"
+            << "  -p --plan [FILE_PATH]         plan file path\n"
+            << "  -o --output [FILE_PATH]       ouptut file path\n"
+            << "  -s --seed                     seed\n"
+            << "  -u --ub-delay-prob            upper bound of delay probabilities\n"
+            << "  -v --verbose                  print additional info\n"
+            << "  -h --help                     help"
+            << std::endl;
 }

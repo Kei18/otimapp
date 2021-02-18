@@ -31,6 +31,8 @@ endmacro(add_test)
 
 # basic
 add_test(test_problem ./tests/test_problem.cpp)
+add_test(test_agent ./tests/test_agent.cpp)
+add_test(test_execution ./tests/test_execution.cpp)
 # solver
 #
 add_executable(test ${TEST_ALL_SRC})
