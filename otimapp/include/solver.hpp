@@ -9,6 +9,7 @@
 
 #include "problem.hpp"
 #include "util.hpp"
+#include "cycle_candidate.hpp"
 
 class MinimumSolver
 {
@@ -142,6 +143,7 @@ public:
   Path getPath(const int id,
                CheckInvalidMove checkInvalidMove,
                CompareAstarNodes compare = compareAstarNodesDefault);
+  Path getPrioritizedPath(const int id, const Plan& paths, TableCycle& table);
 
 public:
   Solver(Problem* _P);

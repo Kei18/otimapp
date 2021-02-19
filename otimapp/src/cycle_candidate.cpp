@@ -55,7 +55,8 @@ CycleCandidate* TableCycle::createNewCycleCandidate
 };
 
 // return deadlock or nullptr
-CycleCandidate* TableCycle::registerNewPath(const int id, const Path path, const int nodes_size)
+CycleCandidate* TableCycle::registerNewPath
+(const int id, const Path path, const int nodes_size, const bool force)
 {
   // avoid loop with own path
   std::vector<bool> table_path_until_t_minus2(nodes_size, false);
@@ -77,6 +78,8 @@ CycleCandidate* TableCycle::registerNewPath(const int id, const Path path, const
       return nullptr;
     };
 
+  CycleCandidate* res = nullptr;
+
   // update cycles step by step
   for (int t = 1; t < (int)path.size(); ++t) {
     auto v_before = path[t-1];
@@ -85,20 +88,21 @@ CycleCandidate* TableCycle::registerNewPath(const int id, const Path path, const
     // update part of path
     if (t >= 2) table_path_until_t_minus2[path[t-2]->id] = true;
 
-    auto res = checkPotentialDeadlock(id, v_before, nullptr, v_next);
-    if (res != nullptr) return res;
+    res = checkPotentialDeadlock(id, v_before, nullptr, v_next);
+    if (!force && res != nullptr) return res;
 
     // check existing cycle, tail
     for (auto c : t_tail[v_before->id]) {
-      auto res = checkPotentialDeadlock(id, c->path.front(), c, v_next);
-      if (res != nullptr) return res;
+      res = checkPotentialDeadlock(id, c->path.front(), c, v_next);
+      if (!force && res != nullptr) return res;
     }
 
     // check existing cycle, head
     for (auto c : t_head[v_next->id]) {
-      auto res = checkPotentialDeadlock(id, v_before, c, c->path.back());
-      if (res != nullptr) return res;
+      res = checkPotentialDeadlock(id, v_before, c, c->path.back());
+      if (!force && res != nullptr) return res;
     }
   }
-  return nullptr;
+
+  return res;
 }

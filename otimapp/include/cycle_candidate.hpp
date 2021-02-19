@@ -23,5 +23,7 @@ struct TableCycle {
   CycleCandidate* createNewCycleCandidate(const int id, Node* head, CycleCandidate* c_base, Node* tail);
 
   // return deadlock or nullptr
-  CycleCandidate* registerNewPath(const int id, const Path path, const int nodes_size);
+  // force = false -> return when finding first cycle, false -> register all info
+  CycleCandidate* registerNewPath
+  (const int id, const Path path, const int nodes_size, const bool force = false);
 };

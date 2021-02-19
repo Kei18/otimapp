@@ -4,7 +4,6 @@
 
 #pragma once
 #include "solver.hpp"
-#include "cycle_candidate.hpp"
 
 class PrioritizedPlanning : public Solver
 {
@@ -14,9 +13,6 @@ public:
 private:
   // main
   void run();
-
-  // get a single-agent path
-  Path getPrioritizedPath(const int id, const Plan& paths, TableCycle& table);
 
 public:
   PrioritizedPlanning(Problem* _P);

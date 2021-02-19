@@ -270,3 +270,22 @@ Path Solver::getPath
 
   return path;
 }
+
+Path Solver::getPrioritizedPath(const int id, const Plan& paths, TableCycle& table)
+{
+  Node* const g = P->getGoal(id);
+
+  auto checkInvalidNode = [&](Node* child, Node* parent) {
+    // condition 1, avoid goals
+    if (child != g && table_goals[child->id]) return true;
+
+    // condition 2, avoid potential deadlocks
+    for (auto c : table.t_tail[parent->id]) {
+      if (c->path.front() == child) return true;
+    }
+
+    return false;
+  };
+
+  return getPath(id, checkInvalidNode);
+}
