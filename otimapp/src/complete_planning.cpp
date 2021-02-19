@@ -1,4 +1,5 @@
 #include "../include/complete_planning.hpp"
+#include "../include/cycle_candidate.hpp"
 
 
 const std::string CompletePlanning::SOLVER_NAME = "CompletePlanning";
@@ -125,8 +126,9 @@ Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
     }
   }
 
-  auto compare = [&from_to_table](AstarNode* a, AstarNode* b) {
-    if (a->f != b->f) return a->f > b->f;
+  auto compare = [&](AstarNode* a, AstarNode* b) {
+    // greedy search
+    if (pathDist(id, a->v) != pathDist(id, b->v)) return pathDist(id, a->v) > pathDist(id, b->v);
     // tie break
     auto table_a = from_to_table[a->p->v->id];
     auto table_b = from_to_table[a->p->v->id];
@@ -143,112 +145,19 @@ Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
 CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths) const
 {
   Constraints constraints = {};
+  const int nodes_size = G->getNodesSize();
+  TableCycle table(nodes_size);
 
-  Path path_until_t_minus_2;  // path[0] ... path[t-2]
-
-  struct CycleCandidate {
-    std::deque<Node*> path;
-    std::deque<int> agents;
-
-    CycleCandidate() {}
-  };
-  using CycleCandidate_p = std::shared_ptr<CycleCandidate>;
-  std::vector<std::vector<CycleCandidate_p>> table_cycle_tail(G->getNodesSize());
-  std::vector<std::vector<CycleCandidate_p>> table_cycle_head(G->getNodesSize());
-
-  // check duplication
-  auto existDuplication = [&] (Node* head, Node* tail)
-  {
-    auto cycles = table_cycle_head[head->id];
-    return
-      std::find_if(cycles.begin(), cycles.end(),
-                   [&tail] (CycleCandidate_p c)
-                   { return c->path.back() == tail; }) != cycles.end();
-  };
-
-  // create new entry
-  auto createNewCycleCandidate = [&] (int id, Node* head, CycleCandidate_p c_base, Node* tail)
-  {
-    // create new entry
-    auto c = std::make_shared<CycleCandidate>();
-
-    // agent
-    if (c_base != nullptr) c->agents = c_base->agents;
-    if (tail != nullptr) {
-      c->agents.push_back(id);
-    } else {  // head != nullptr
-      c->agents.push_front(id);
-    }
-
-    // path
-    if ((c_base == nullptr || head != c_base->path.front()) && head != nullptr)
-      c->path.push_back(head);
-    if (c_base != nullptr)
-      for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) c->path.push_back(*itr);
-    if ((c_base == nullptr || tail != c_base->path.back()) && tail != nullptr)
-      c->path.push_back(tail);
-
-    // register
-    table_cycle_head[c->path.front()->id].push_back(c);
-    table_cycle_tail[c->path.back()->id].push_back(c);
-
-    // detect deadlock
-    if (c->path.front() == c->path.back()) {
+  // main loop
+  for (int i = 0; i < P->getNum(); ++i) {
+    auto c = table.registerNewPath(i, paths[i], nodes_size);
+    if (c != nullptr) {
       // create constraints
       for (int i = 0; i < c->agents.size(); ++i) {
         constraints.push_back(std::make_shared<Constraint>(c->agents[i], c->path[i], c->path[i+1]));
       }
+      break;
     }
-  };
-
-  // avoid loop with own path
-  auto usingOwnPath = [&] (CycleCandidate_p c)
-  {
-    for (auto itr = c->path.begin(); itr != c->path.end(); ++itr) {
-      if (inArray(*itr, path_until_t_minus_2)) return true;
-    }
-    return false;
-  };
-
-
-  for (int i = 0; i < P->getNum(); ++i) {
-    auto path = paths[i];
-
-    // update cycles step by step
-    for (int t = 1; t < (int)path.size(); ++t) {
-      auto v_before = path[t-1];
-      auto v_next = path[t];
-
-      // update part of path
-      if (t >= 2) path_until_t_minus_2.push_back(path[t-2]);
-
-      if (!existDuplication(v_before, v_next)) {
-        createNewCycleCandidate(i, v_before, nullptr, v_next);
-        if (!constraints.empty()) return constraints;
-      }
-
-      // check existing cycle, tail
-      if (!table_cycle_tail[v_before->id].empty()) {
-        for (auto c : table_cycle_tail[v_before->id]) {
-          if (existDuplication(c->path.front(), v_next)) continue;
-          if (usingOwnPath(c)) continue;
-          createNewCycleCandidate(i, nullptr, c, v_next);
-          if (!constraints.empty()) return constraints;
-        }
-      }
-
-      // check existing cycle, head
-      if (!table_cycle_head[v_next->id].empty()) {
-        for (auto c : table_cycle_head[v_next->id]) {
-          if (existDuplication(v_before, c->path.back())) continue;
-          if (usingOwnPath(c)) continue;
-          createNewCycleCandidate(i, v_before, c, nullptr);
-          if (!constraints.empty()) return constraints;
-        }
-      }
-    }
-
-    path_until_t_minus_2.clear();
   }
 
   return constraints;

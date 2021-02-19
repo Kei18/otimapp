@@ -23,15 +23,6 @@ private:
 
     Constraint(int i, Node* u, Node* v)
       : agent(i), parent(u), child(v) {}
-
-    void println()
-    {
-      std::cout << "constraint"
-                << ", agent: " << agent
-                << ", parent: " << parent->id
-                << ", child: " << child->id
-                << std::endl;
-    }
   };
   using Constraint_p = std::shared_ptr<Constraint>;
   using Constraints = std::vector<Constraint_p>;
@@ -39,7 +30,7 @@ private:
   struct HighLevelNode {
     Plan paths;
     Constraints constraints;
-    int f;                     // sum of path lengths
+    int f;  // sum of path lengths
     bool valid;
 
     HighLevelNode()
