@@ -75,13 +75,20 @@ void CompletePlanning::run()
 
 CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
 {
+  const int nodes_size = G->getNodesSize();
+  TableCycle table(nodes_size);
   auto n = std::make_shared<HighLevelNode>();
   for (int i = 0; i < P->getNum(); ++i) {
-    n->paths.push_back(getConstrainedPath(i, n));
-    if (n->paths[i].empty()) {
-      n->valid = false;
-      break;
+    auto p = getPrioritizedPath(i, n->paths, table);
+    if (p.empty()) {
+      p = getConstrainedPath(i, n);
+      if (p.empty()) {
+        n->valid = false;
+        break;
+      }
     }
+    n->paths.push_back(p);
+    table.registerNewPath(i, p, nodes_size, true);
   }
   n->f = countsSwapConlicts(n->paths);
   return n;
