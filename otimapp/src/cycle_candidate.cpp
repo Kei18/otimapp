@@ -18,13 +18,6 @@ TableCycle::~TableCycle()
 CycleCandidate* TableCycle::createNewCycleCandidate
 (const int id, Node* head, CycleCandidate* c_base, Node* tail)
 {
-  // path
-  std::deque<Node*> path;
-  if (c_base == nullptr || head != c_base->path.front()) path.push_back(head);
-  if (c_base != nullptr)
-    for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) path.push_back(*itr);
-  if (c_base == nullptr || tail != c_base->path.back()) path.push_back(tail);
-
   // create new entry
   auto c = new CycleCandidate();
 
@@ -37,7 +30,11 @@ CycleCandidate* TableCycle::createNewCycleCandidate
     if (c_base->path.back()  != tail) c->agents.push_back(id);
   }
 
-  c->path = path;
+  // path
+  if (c_base == nullptr || head != c_base->path.front()) c->path.push_back(head);
+  if (c_base != nullptr)
+    for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) c->path.push_back(*itr);
+  if (c_base == nullptr || tail != c_base->path.back()) c->path.push_back(tail);
 
   // register
   t_head[c->path.front()->id].push_back(c);
@@ -84,6 +81,33 @@ CycleCandidate* TableCycle::registerNewPath
     for (auto c : t_head[v_next->id]) {
       res = checkPotentialDeadlock(id, v_before, c, c->path.back());
       if (!force && res != nullptr) return res;
+    }
+
+    // connect
+    for (auto c_tail : t_tail[v_before->id]) {
+      if (inArray(id, c_tail->agents)) continue;
+      for (auto c_head : t_head[v_next->id]) {
+        if (inArray(id, c_head->agents)) continue;
+        // avoid self loop
+        bool self_loop = false;
+        for (auto i : c_tail->agents)
+          if (inArray(i, c_head->agents)) self_loop = true;
+        if (self_loop) break;
+        // connect three cycle_candidate
+        auto c = new CycleCandidate();
+        // agents
+        for (auto i : c_tail->agents) c->agents.push_back(i);
+        c->agents.push_back(id);
+        for (auto i : c_head->agents) c->agents.push_back(i);
+        // path
+        for (auto v : c_tail->path) c->path.push_back(v);
+        for (auto v : c_head->path) c->path.push_back(v);
+        // register
+        t_head[c->path.front()->id].push_back(c);
+        t_tail[c->path.back()->id].push_back(c);
+        // detect deadlock
+        if (c->path.front() == c->path.back()) return c;
+      }
     }
   }
 
