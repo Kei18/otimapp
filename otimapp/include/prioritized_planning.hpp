@@ -11,6 +11,9 @@ public:
   static const std::string SOLVER_NAME;
 
 private:
+  int iter_cnt_max;
+  static constexpr int DEFAULT_ITER_CNT_MAX = 10;
+
   // main
   void run();
 

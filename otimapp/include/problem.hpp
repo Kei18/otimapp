@@ -24,7 +24,7 @@ private:
 
   // set starts and goals randomly
   void setRandomStartsGoals();
-  void setWellFormedInstance();
+  void setGoalAvoidanceInstance();
 
   // utilities
   void halt(const std::string& msg) const;

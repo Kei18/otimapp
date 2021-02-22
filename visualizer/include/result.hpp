@@ -20,6 +20,8 @@ struct Result {
   Config config_g;        // goal configuration
   Configs transitions;    // plan
   int activated_cnt;      // activation counts
+  float ub_delay_prob;    // upper bound of delay probabilities
+  std::vector<float> delay_probs;  // delay probabilities
   States exec;            // execution
 
   ~Result() { delete G; }

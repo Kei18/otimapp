@@ -33,6 +33,7 @@ endmacro(add_test)
 add_test(test_problem ./tests/test_problem.cpp)
 add_test(test_agent ./tests/test_agent.cpp)
 add_test(test_execution ./tests/test_execution.cpp)
+add_test(test_cycle_candidate ./tests/test_cycle_candidate.cpp)
 # solver
 #
 add_executable(test ${TEST_ALL_SRC})

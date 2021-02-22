@@ -75,8 +75,7 @@ void CompletePlanning::run()
 
 CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
 {
-  const int nodes_size = G->getNodesSize();
-  TableCycle table(nodes_size);
+  TableCycle table(G->getNodesSize());
   auto n = std::make_shared<HighLevelNode>();
   for (int i = 0; i < P->getNum(); ++i) {
     auto p = getPrioritizedPath(i, n->paths, table);
@@ -88,7 +87,7 @@ CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
       }
     }
     n->paths.push_back(p);
-    table.registerNewPath(i, p, nodes_size, true);
+    table.registerNewPath(i, p, true);
   }
   n->f = countsSwapConlicts(n->paths);
   return n;
@@ -138,7 +137,7 @@ Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
     if (pathDist(id, a->v) != pathDist(id, b->v)) return pathDist(id, a->v) > pathDist(id, b->v);
     // tie break
     auto table_a = from_to_table[a->p->v->id];
-    auto table_b = from_to_table[a->p->v->id];
+    auto table_b = from_to_table[b->p->v->id];
     bool swap_a = std::find(table_a.begin(), table_a.end(), a->v->id) != table_a.end();
     bool swap_b = std::find(table_b.begin(), table_b.end(), b->v->id) != table_b.end();
     if (swap_a != swap_b) return (int)swap_a < (int)swap_b;
@@ -152,12 +151,11 @@ Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
 CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths) const
 {
   Constraints constraints = {};
-  const int nodes_size = G->getNodesSize();
-  TableCycle table(nodes_size);
+  TableCycle table(G->getNodesSize());
 
   // main loop
   for (int i = 0; i < P->getNum(); ++i) {
-    auto c = table.registerNewPath(i, paths[i], nodes_size);
+    auto c = table.registerNewPath(i, paths[i]);
     if (c != nullptr) {
       // create constraints
       for (int i = 0; i < c->agents.size(); ++i) {

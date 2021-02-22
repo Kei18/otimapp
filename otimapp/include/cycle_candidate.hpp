@@ -12,8 +12,9 @@ struct CycleCandidate {
 struct TableCycle {
   std::vector<std::vector<CycleCandidate*>> t_head;  // table head
   std::vector<std::vector<CycleCandidate*>> t_tail;  // table tail
+  int nodes_size;
 
-  TableCycle(const int nodes_size);
+  TableCycle(const int _nodes_size);
   ~TableCycle();
 
   // check duplication
@@ -24,6 +25,5 @@ struct TableCycle {
 
   // return deadlock or nullptr
   // force = false -> return when finding first cycle, false -> register all info
-  CycleCandidate* registerNewPath
-  (const int id, const Path path, const int nodes_size, const bool force = false);
+  CycleCandidate* registerNewPath(const int id, const Path path, const bool force = false);
 };

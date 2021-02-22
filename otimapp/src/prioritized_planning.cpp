@@ -3,7 +3,8 @@
 const std::string PrioritizedPlanning::SOLVER_NAME = "PrioritizedPlanning";
 
 PrioritizedPlanning::PrioritizedPlanning(Problem* _P)
-  : Solver(_P)
+  : Solver(_P),
+    iter_cnt_max(DEFAULT_ITER_CNT_MAX)
 {
   solver_name = SOLVER_NAME;
 }
@@ -19,7 +20,7 @@ void PrioritizedPlanning::run()
   std::iota(id_list.begin(), id_list.end(), 0);
 
   int itr_cnt = 0;
-  while (!solved && !overCompTime()) {
+  while (!solved && !overCompTime() && itr_cnt < iter_cnt_max) {
     ++itr_cnt;
 
     // randomize order
@@ -50,7 +51,7 @@ void PrioritizedPlanning::run()
       }
 
       // register new
-      auto c = table_cycle.registerNewPath(i, solution[i], G->getNodesSize());
+      auto c = table_cycle.registerNewPath(i, solution[i]);
       if (c != nullptr) halt("detect deadlock");
     }
     solved = !invalid;
@@ -59,6 +60,21 @@ void PrioritizedPlanning::run()
 
 void PrioritizedPlanning::setParams(int argc, char* argv[])
 {
+  struct option longopts[] = {
+    {"iter-cnt-max", no_argument, 0, 'm'},
+    {0, 0, 0, 0},
+  };
+  optind = 1;  // reset
+  int opt, longindex;
+  while ((opt = getopt_long(argc, argv, "m:", longopts, &longindex)) != -1) {
+    switch (opt) {
+    case 'm':
+      iter_cnt_max = std::atoi(optarg);
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 void PrioritizedPlanning::printHelp()

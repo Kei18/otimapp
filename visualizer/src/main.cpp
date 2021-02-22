@@ -68,6 +68,9 @@ void readSetResult(const std::string& result_file, Result* res)
   std::regex r_goals     = std::regex(R"(goals=(.+))");
   std::regex r_result    = std::regex(R"(result=)");
   std::regex r_act_cnts  = std::regex(R"(activate_cnts=(\d+))");
+  std::regex r_ub_dp     = std::regex(R"(ub_delay_prob=(.+))");
+  std::regex r_dp_array  = std::regex(R"(delay_probs=(.+))");
+  std::regex r_dp        = std::regex(R"((.+?),)");
   std::regex r_execution = std::regex(R"(execution.+=)");
   std::regex r_exec_row  = std::regex(R"((\d+):\((\d+),(\d+),(\d+),(.+),(\d+)\))");
   std::regex r_config    = std::regex(R"(\d+:(.+))");
@@ -123,6 +126,22 @@ void readSetResult(const std::string& result_file, Result* res)
     // activation counts
     if (std::regex_match(line, results, r_act_cnts)) {
       res->activated_cnt = std::stoi(results[1].str());
+      continue;
+    }
+    // upper bound of delay probabilities
+    if (std::regex_match(line, results, r_ub_dp)) {
+      res->ub_delay_prob = std::stof(results[1].str());
+      continue;
+    }
+    // delay probabilities
+    if (std::regex_match(line, results, r_dp_array)) {
+      std::smatch m;
+      auto s = results[1].str();
+      auto iter = s.cbegin();
+      while (std::regex_search(iter, s.cend(), m, r_dp)) {
+        iter = m[0].second;
+        res->delay_probs.push_back(std::stof(m[1].str()));
+      }
       continue;
     }
     // result

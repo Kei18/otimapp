@@ -134,6 +134,10 @@ void Solver::makeLogSolution(std::ofstream& log)
     log << "(" << v->pos.x << "," << v->pos.y << "),";
   }
   log << "\n";
+  log << "sum-of-path-length:"
+      << std::accumulate(solution.begin(), solution.end(), 0,
+                         [] (int acc, Path p) { return acc + p.size()-1; })
+      << "\n";
   log << "plan=\n";
   for (int i = 0; i < (int)solution.size(); ++i) {
     log << i << ":";
@@ -147,9 +151,15 @@ void Solver::makeLogSolution(std::ofstream& log)
 // -------------------------------
 void Solver::printResult()
 {
-  std::cout << "solved=" << solved << ", solver=" << std::right << std::setw(8)
-            << solver_name << ", comp_time(ms)=" << std::right << std::setw(8)
-            << getCompTime() << std::endl;
+  int cost = 0;
+  if (solved)
+    for (auto p : solution) cost += p.size()-1;
+
+  std::cout << "solved=" << solved
+            << ", solver=" << std::right << std::setw(8) << solver_name
+            << ", comp_time(ms)=" << std::right << std::setw(8) << getCompTime()
+            << ", sum of path length=" << std::right << std::setw(8) << cost
+            << std::endl;
 }
 
 void Solver::printHelpWithoutOption(const std::string& solver_name)
@@ -275,6 +285,16 @@ Path Solver::getPrioritizedPath(const int id, const Plan& paths, TableCycle& tab
 {
   Node* const g = P->getGoal(id);
 
+  auto compare = [&](AstarNode* a, AstarNode* b) {
+      if (a->f != b->f) return a->f > b->f;
+      // tie break
+      int table_a = table.t_head[a->v->id].size();
+      int table_b = table.t_head[b->v->id].size();
+      if (table_a != table_b) return  table_a > table_b;
+      if (a->g != b->g) return a->g < b->g;
+      return false;
+    };
+
   auto checkInvalidNode = [&](Node* child, Node* parent) {
     // condition 1, avoid goals
     if (child != g && table_goals[child->id]) return true;
@@ -287,5 +307,5 @@ Path Solver::getPrioritizedPath(const int id, const Plan& paths, TableCycle& tab
     return false;
   };
 
-  return getPath(id, checkInvalidNode);
+  return getPath(id, checkInvalidNode, compare);
 }

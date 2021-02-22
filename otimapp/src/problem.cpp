@@ -22,11 +22,11 @@ Problem::Problem(const std::string& _instance)
   std::regex r_seed = std::regex(R"(seed=(\d+))");
   std::regex r_random_problem = std::regex(R"(random_problem=(\d+))");
   std::regex r_max_comp_time = std::regex(R"(max_comp_time=(\d+))");
-  std::regex r_well_formed = std::regex(R"(well_formed=(\d+))");
+  std::regex r_goal_avoidance = std::regex(R"(goal_avoidance=(\d+))");
   std::regex r_sg = std::regex(R"((\d+),(\d+),(\d+),(\d+))");
 
   bool read_scen = true;
-  bool well_formed = false;
+  bool goal_avoidance = false;
   while (getline(file, line)) {
     // for CRLF coding
     if (*(line.end() - 1) == 0x0d) line.pop_back();
@@ -64,9 +64,9 @@ Problem::Problem(const std::string& _instance)
       max_comp_time = std::stoi(results[1].str());
       continue;
     }
-    // well formed instance
-    if (std::regex_match(line, results, r_well_formed)) {
-      well_formed = (bool)std::stoi(results[1].str());
+    // goal avoidance instance
+    if (std::regex_match(line, results, r_goal_avoidance)) {
+      goal_avoidance = (bool)std::stoi(results[1].str());
       continue;
     }
     // read initial/goal nodes
@@ -101,8 +101,8 @@ Problem::Problem(const std::string& _instance)
     warn("given starts/goals are not sufficient\nrandomly create instances");
   }
   if (num_agents > (int)config_s.size()) {
-    if (well_formed) {
-      setWellFormedInstance();
+    if (goal_avoidance) {
+      setGoalAvoidanceInstance();
     } else {
       setRandomStartsGoals();
     }
@@ -184,7 +184,7 @@ void Problem::setRandomStartsGoals()
  * Note: it is hard to generate well-formed instances
  * with dense situations (e.g., ≥300 agents in arena)
  */
-void Problem::setWellFormedInstance()
+void Problem::setGoalAvoidanceInstance()
 {
   // initialize
   config_s.clear();
@@ -192,7 +192,7 @@ void Problem::setWellFormedInstance()
 
   // get grid size
   const int N = G->getNodesSize();
-  Nodes prohibited, starts_goals;
+  Nodes prohibited;
 
   while ((int)config_g.size() < getNum()) {
     while (true) {
@@ -209,12 +209,10 @@ void Problem::setWellFormedInstance()
       } while (g == nullptr || g == s || inArray(g, prohibited));
 
       // ensure well formed property
-      auto path = G->getPath(s, g, starts_goals);
+      auto path = G->getPath(s, g, config_g);
       if (!path.empty()) {
         config_s.push_back(s);
         config_g.push_back(g);
-        starts_goals.push_back(s);
-        starts_goals.push_back(g);
         for (auto v : path) {
           if (!inArray(v, prohibited)) prohibited.push_back(v);
         }

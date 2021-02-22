@@ -1,7 +1,7 @@
 #include "../include/cycle_candidate.hpp"
 
-TableCycle::TableCycle(const int nodes_size)
-  : t_head(nodes_size), t_tail(nodes_size)
+TableCycle::TableCycle(const int _nodes_size)
+  : t_head(_nodes_size), t_tail(_nodes_size), nodes_size(_nodes_size)
 {
 }
 
@@ -56,7 +56,7 @@ CycleCandidate* TableCycle::createNewCycleCandidate
 
 // return deadlock or nullptr
 CycleCandidate* TableCycle::registerNewPath
-(const int id, const Path path, const int nodes_size, const bool force)
+(const int id, const Path path, const bool force)
 {
   // avoid loop with own path
   std::vector<bool> table_path_until_t_minus2(nodes_size, false);

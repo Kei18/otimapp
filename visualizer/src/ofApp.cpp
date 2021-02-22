@@ -266,7 +266,9 @@ void ofApp::draw()
       // id
       if (flg_font) {
         ofSetColor(Color::font);
-        font.drawString(std::to_string(i), x-font_size/2+w, y+font_size/2);
+        font.drawString(std::to_string(i), x-font_size/2+w, y-font_size/2);
+        // delay probabilities
+        font.drawString(std::to_string(P->delay_probs[i]).substr(1,4), x-font_size+w, y+font_size);
       }
     }
   }
@@ -295,6 +297,8 @@ void ofApp::draw()
                        + std::to_string(P->makespan)
                        + ", soc: "
                        + std::to_string(P->soc),
+                       x, y+=15);
+  font_info.drawString("ub_delay_prob: " + std::to_string(P->ub_delay_prob),
                        x, y+=15);
 
   gui_time_ind.draw();
