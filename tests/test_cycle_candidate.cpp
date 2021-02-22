@@ -26,10 +26,6 @@ TEST(CycleCandidate, createNewEntry)
   ASSERT_EQ(c3->agents[0], 2);
   ASSERT_EQ(c3->agents[1], 0);
   ASSERT_EQ(c3->agents[2], 1);
-
-  // duplication
-  ASSERT_TRUE(table.existDuplication(G.getNode(8), G.getNode(2)));
-  ASSERT_FALSE(table.existDuplication(G.getNode(2), G.getNode(8)));
 }
 
 TEST(CycleCandidate, registerNewPath)

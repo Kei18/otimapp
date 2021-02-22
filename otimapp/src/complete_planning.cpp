@@ -51,7 +51,7 @@ void CompletePlanning::run()
     info(" ", "elapsed:", getSolverElapsedTime(),
          ", explored_node_num:", iteration, ", nodes_num:", h_node_num,
          ", constraints:", n->constraints.size(),
-         ", f:", n->f);
+         ", head-collision:", n->f);
 
     // check conflict
     auto constraints = getConstraints(n->paths);

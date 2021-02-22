@@ -7,6 +7,7 @@
 #include <chrono>
 #include <iostream>
 #include <random>
+#include <deque>
 
 // for computation time
 using Time = std::chrono::steady_clock;
@@ -14,6 +15,13 @@ using Time = std::chrono::steady_clock;
 // whether element 'a' is found in vector T
 template <typename T>
 static bool inArray(const T a, const std::vector<T>& arr)
+{
+  auto itr = std::find(arr.begin(), arr.end(), a);
+  return itr != arr.end();
+}
+
+template <typename T>
+static bool inArray(const T a, const std::deque<T>& arr)
 {
   auto itr = std::find(arr.begin(), arr.end(), a);
   return itr != arr.end();

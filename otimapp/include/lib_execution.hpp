@@ -17,13 +17,15 @@ static bool sameConfig(const Config& config_i, const Config& config_j)
 [[maybe_unused]]
 static int getMakespan(const Configs& result)
 {
-  return result.size() - 1;
+  return !result.empty() ? result.size() - 1 : 0;
 }
 
 // sum-of-costs
 [[maybe_unused]]
 static int getSOC(const Configs& result)
 {
+  if (result.empty()) return 0;
+
   int soc = 0;
   const int makespan = getMakespan(result);
   const int num_agents = result[0].size();

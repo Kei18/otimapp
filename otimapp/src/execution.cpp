@@ -7,8 +7,6 @@ Execution::Execution
 (Problem* _P, std::string _plan_file, int _seed, float _ub_delay_prob, bool _verbose)
   : P(_P),
     plan_file(_plan_file),
-    solved(getSolved()),
-    plan(getPlan()),
     seed(_seed),
     MT(new std::mt19937(seed)),
     ub_delay_prob(_ub_delay_prob),
@@ -19,6 +17,10 @@ Execution::Execution
   for (int i = 0; i < P->getNum(); ++i) {
     delay_probs.push_back(getRandomFloat(0, ub_delay_prob, MT));
   }
+
+  // read plan results
+  solved = getSolved();
+  plan = getPlan();
 }
 
 Execution::~Execution()
@@ -47,7 +49,7 @@ void Execution::run()
   }
 
   // setup utilities
-  std::function<bool(Agent_p)> isStable = [&] (Agent_p a)
+  std::function<bool(Agent_p, Agents&)> isStable = [&] (Agent_p a, Agents& agents)
   {
     if (a->mode == Agent::EXTENDED || a->isFinished()) return true;
     // next location
@@ -56,8 +58,17 @@ void Execution::run()
     auto a_j = occupancy[v_next->id];
     // no one uses v_next
     if (a_j == Agent::NIL) return false;
+    // check deadlock
+    if (inArray(A[a_j], agents)) {
+      std::string msg = "detect deadlock: ";
+      for (auto b : agents) {
+        msg += std::to_string(b->id) + " at " + std::to_string(b->tail->id) + ", ";
+      }
+      halt(msg);
+    }
+    agents.push_back(A[a_j]);
     // when a_j is in extended
-    if (isStable(A[a_j])) return true;
+    if (isStable(A[a_j], agents)) return true;
     // when a_j is in contracted
     return false;
   };
@@ -112,14 +123,16 @@ void Execution::run()
         activate(a);
 
         // remove from unstable when agent is stable
-        if (isStable(a)) {
+        Agents vec = { a };
+        if (isStable(a, vec)) {
           unstable.erase(std::find(unstable.begin(), unstable.end(), a));
         }
       }
 
       // check again whether agents are in stable
       for (auto a : A) {
-        if (!isStable(a)) unstable.push_back(a);
+        Agents vec = { a };
+        if (!isStable(a, vec)) unstable.push_back(a);
       }
 
     } while (!unstable.empty());
@@ -159,12 +172,18 @@ Plan Execution::getPlan() const
   std::ifstream file(plan_file);
   if (!file) halt(plan_file + " cannot be opened");
   Plan _plan;  // solution
+  std::regex r_instance = std::regex(R"(instance=(.+))");
   std::regex r_plan = std::regex(R"(plan=)");
   std::regex r_path = std::regex(R"(\d+:(.+))");
   std::regex r_pos = std::regex(R"((\d+),)");
   std::string line;
   std::smatch results;
   while (getline(file, line)) {
+    if (std::regex_match(line, results, r_instance)) {
+      if (results[1].str() != P->getInstanceFileName()) {
+        halt("different instance");
+      }
+    }
     if (std::regex_match(line, results, r_plan)) {
       while (getline(file, line)) {
         if (std::regex_match(line, results, r_path)) {
@@ -242,13 +261,15 @@ void Execution::makeLog(const std::string& logfile) const
   log << "makespan=" << makespan << "\n";
   log << "soc=" << soc << "\n";
   log << "result=\n";
-  for (int t = 0; t <= makespan; ++t) {
-    log << t << ":";
-    auto c = exec_result[t];
-    for (auto v : c) {
-      log << "(" << v->pos.x << "," << v->pos.y << "),";
+  if (solved) {
+    for (int t = 0; t <= makespan; ++t) {
+      log << t << ":";
+      auto c = exec_result[t];
+      for (auto v : c) {
+        log << "(" << v->pos.x << "," << v->pos.y << "),";
+      }
+      log << "\n";
     }
-    log << "\n";
   }
   log << "execution(id,t,mode,head,tail)=\n";
   for (int i = 0; i < (int)HIST.size(); ++i) {

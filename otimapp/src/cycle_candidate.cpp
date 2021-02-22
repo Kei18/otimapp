@@ -1,4 +1,6 @@
 #include "../include/cycle_candidate.hpp"
+#include <iostream>
+#include "../include/util.hpp"
 
 TableCycle::TableCycle(const int _nodes_size)
   : t_head(_nodes_size), t_tail(_nodes_size), nodes_size(_nodes_size)
@@ -12,22 +14,16 @@ TableCycle::~TableCycle()
   }
 }
 
-// check duplication
-bool TableCycle::existDuplication(Node* head, Node* tail)
-{
-  auto cycles = t_head[head->id];
-  return
-    std::find_if(cycles.begin(), cycles.end(),
-                 [&tail] (CycleCandidate* c)
-                 { return c->path.back() == tail; }) != cycles.end();
-};
-
 // create new entry
 CycleCandidate* TableCycle::createNewCycleCandidate
 (const int id, Node* head, CycleCandidate* c_base, Node* tail)
 {
-  // check duplication
-  if (existDuplication(head, tail)) return nullptr;
+  // path
+  std::deque<Node*> path;
+  if (c_base == nullptr || head != c_base->path.front()) path.push_back(head);
+  if (c_base != nullptr)
+    for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) path.push_back(*itr);
+  if (c_base == nullptr || tail != c_base->path.back()) path.push_back(tail);
 
   // create new entry
   auto c = new CycleCandidate();
@@ -41,11 +37,7 @@ CycleCandidate* TableCycle::createNewCycleCandidate
     if (c_base->path.back()  != tail) c->agents.push_back(id);
   }
 
-  // path
-  if (c_base == nullptr || head != c_base->path.front()) c->path.push_back(head);
-  if (c_base != nullptr)
-    for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) c->path.push_back(*itr);
-  if (c_base == nullptr || tail != c_base->path.back()) c->path.push_back(tail);
+  c->path = path;
 
   // register
   t_head[c->path.front()->id].push_back(c);
@@ -58,17 +50,11 @@ CycleCandidate* TableCycle::createNewCycleCandidate
 CycleCandidate* TableCycle::registerNewPath
 (const int id, const Path path, const bool force)
 {
-  // avoid loop with own path
-  std::vector<bool> table_path_until_t_minus2(nodes_size, false);
   auto checkPotentialDeadlock =
     [&] (int id, Node* head, CycleCandidate* c_base, Node* tail) -> CycleCandidate*
     {
       // avoid loop with own path
-      if (c_base != nullptr) {
-        for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) {
-          if (table_path_until_t_minus2[(*itr)->id]) return nullptr;
-        }
-      }
+      if (c_base != nullptr && inArray(id, c_base->agents)) return nullptr;
 
       // create new entry
       auto c = createNewCycleCandidate(id, head, c_base, tail);
@@ -84,9 +70,6 @@ CycleCandidate* TableCycle::registerNewPath
   for (int t = 1; t < (int)path.size(); ++t) {
     auto v_before = path[t-1];
     auto v_next = path[t];
-
-    // update part of path
-    if (t >= 2) table_path_until_t_minus2[path[t-2]->id] = true;
 
     res = checkPotentialDeadlock(id, v_before, nullptr, v_next);
     if (!force && res != nullptr) return res;
@@ -105,4 +88,14 @@ CycleCandidate* TableCycle::registerNewPath
   }
 
   return res;
+}
+
+void TableCycle::println()
+{
+  for (auto cycles : t_head) {
+    for (auto c : cycles) {
+      for (auto v : c->path) std::cout << v->id << " -> ";
+      std::cout << std::endl;
+    }
+  }
 }

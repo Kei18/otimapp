@@ -10,8 +10,8 @@ class Execution {
 private:
   Problem* const P;              // problem instance
   const std::string plan_file;   // file of planning result
-  const bool solved;             // check validity of the plan
-  const Plan plan;               // planning
+  bool solved;                   // check validity of the plan
+  Plan plan;                     // planning
   const int seed;                // seed
   std::mt19937* MT;              // seed
   const float ub_delay_prob;     // upper bound of delay probabilities
