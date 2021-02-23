@@ -26,6 +26,10 @@ TEST(CycleCandidate, createNewEntry)
   ASSERT_EQ(c3->agents[0], 2);
   ASSERT_EQ(c3->agents[1], 0);
   ASSERT_EQ(c3->agents[2], 1);
+
+  std::deque<Node*> path = { G.getNode(0), G.getNode(1), G.getNode(2) };
+  std::deque<int> agents = { 1, 0 };
+  ASSERT_TRUE(table.existDuplication(path, agents));
 }
 
 TEST(CycleCandidate, registerNewPath)

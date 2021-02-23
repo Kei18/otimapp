@@ -1,5 +1,6 @@
 #include "../include/cycle_candidate.hpp"
 #include <iostream>
+#include <set>
 #include "../include/util.hpp"
 
 TableCycle::TableCycle(const int _nodes_size)
@@ -9,9 +10,20 @@ TableCycle::TableCycle(const int _nodes_size)
 
 TableCycle::~TableCycle()
 {
-  for (auto cycles : t_tail) {
+  for (auto cycles : t_head) {
     for (auto c : cycles) delete c;
   }
+}
+
+bool TableCycle::existDuplication(const std::deque<Node*>& path, const std::deque<int>& agents)
+{
+  std::set<int> set_agents(agents.begin(), agents.end());
+  for (auto c : t_head[path.front()->id]) {
+    if (std::set(c->agents.begin(), c->agents.end()) != set_agents) continue;
+    if (c->path != path) continue;
+    return true;
+  }
+  return false;
 }
 
 // create new entry
@@ -22,21 +34,28 @@ CycleCandidate* TableCycle::createNewCycleCandidate
   auto c = new CycleCandidate();
 
   // agent
+  std::deque<int> agents;
   if (c_base == nullptr) {
-    c->agents.push_front(id);
+    agents.push_front(id);
   } else {
-    c->agents = c_base->agents;
-    if (c_base->path.front() != head) c->agents.push_front(id);
-    if (c_base->path.back()  != tail) c->agents.push_back(id);
+    agents = c_base->agents;
+    if (c_base->path.front() != head) agents.push_front(id);
+    if (c_base->path.back()  != tail) agents.push_back(id);
   }
 
   // path
-  if (c_base == nullptr || head != c_base->path.front()) c->path.push_back(head);
+  std::deque<Node*> path;
+  if (c_base == nullptr || head != c_base->path.front()) path.push_back(head);
   if (c_base != nullptr)
-    for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) c->path.push_back(*itr);
-  if (c_base == nullptr || tail != c_base->path.back()) c->path.push_back(tail);
+    for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) path.push_back(*itr);
+  if (c_base == nullptr || tail != c_base->path.back()) path.push_back(tail);
+
+  // check duplication
+  if (existDuplication(path, agents)) return nullptr;
 
   // register
+  c->agents = agents;
+  c->path = path;
   t_head[c->path.front()->id].push_back(c);
   t_tail[c->path.back()->id].push_back(c);
 
@@ -83,30 +102,57 @@ CycleCandidate* TableCycle::registerNewPath
       if (!force && res != nullptr) return res;
     }
 
-    // connect
-    for (auto c_tail : t_tail[v_before->id]) {
-      if (inArray(id, c_tail->agents)) continue;
-      for (auto c_head : t_head[v_next->id]) {
-        if (inArray(id, c_head->agents)) continue;
+    // connect two cycle candidates
+    // Note: this is heavy part for computation
+    std::vector<CycleCandidate*> c_tails, c_heads;
+    for (auto c_tail : t_tail[v_before->id])
+      if (!inArray(id, c_tail->agents)) c_tails.push_back(c_tail);
+    for (auto c_head : t_head[v_next->id])
+      if (!inArray(id, c_head->agents)) c_heads.push_back(c_head);
+
+    for (auto c_tail : c_tails) {
+      for (auto c_head : c_heads) {
         // avoid self loop
-        bool self_loop = false;
-        for (auto i : c_tail->agents)
-          if (inArray(i, c_head->agents)) self_loop = true;
-        if (self_loop) break;
-        // connect three cycle_candidate
-        auto c = new CycleCandidate();
-        // agents
-        for (auto i : c_tail->agents) c->agents.push_back(i);
-        c->agents.push_back(id);
-        for (auto i : c_head->agents) c->agents.push_back(i);
-        // path
-        for (auto v : c_tail->path) c->path.push_back(v);
-        for (auto v : c_head->path) c->path.push_back(v);
+        {
+          bool self_loop = false;
+          for (auto i : c_tail->agents) {
+            if (inArray(i, c_head->agents)) {
+              self_loop = true;
+            }
+          }
+          if (self_loop) continue;
+        }
+        // create body
+        std::deque<int> agents;
+        std::deque<Node*> path;
+        {
+          // agents
+          for (auto i : c_tail->agents) agents.push_back(i);
+          agents.push_back(id);
+          for (auto i : c_head->agents) agents.push_back(i);
+          // path
+          for (auto v : c_tail->path) path.push_back(v);
+          for (auto v : c_head->path) path.push_back(v);
+        }
+        // check duplication
+        {
+          if (existDuplication(path, agents)) {
+            continue;
+          }
+        }
         // register
-        t_head[c->path.front()->id].push_back(c);
-        t_tail[c->path.back()->id].push_back(c);
-        // detect deadlock
-        if (c->path.front() == c->path.back()) return c;
+        {
+          auto c = new CycleCandidate();
+          c->agents = agents;
+          c->path = path;
+          t_head[c->path.front()->id].push_back(c);
+          t_tail[c->path.back()->id].push_back(c);
+          // detect deadlock
+          if (c->path.front() == c->path.back()) {
+            res = c;
+            if (!force) return res;
+          }
+        }
       }
     }
   }
@@ -119,6 +165,8 @@ void TableCycle::println()
   for (auto cycles : t_head) {
     for (auto c : cycles) {
       for (auto v : c->path) std::cout << v->id << " -> ";
+      std::cout << " : ";
+      for (auto i : c->agents) std::cout << i << " -> ";
       std::cout << std::endl;
     }
   }

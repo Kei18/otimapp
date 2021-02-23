@@ -17,6 +17,8 @@ struct TableCycle {
   TableCycle(const int _nodes_size);
   ~TableCycle();
 
+  bool existDuplication(const std::deque<Node*>& path, const std::deque<int>& agents);
+
   // create new entry
   CycleCandidate* createNewCycleCandidate(const int id, Node* head, CycleCandidate* c_base, Node* tail);
 

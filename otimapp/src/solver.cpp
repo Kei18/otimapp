@@ -288,9 +288,9 @@ Path Solver::getPrioritizedPath(const int id, const Plan& paths, TableCycle& tab
   auto compare = [&](AstarNode* a, AstarNode* b) {
       if (a->f != b->f) return a->f > b->f;
       // tie break
-      int table_a = table.t_head[a->v->id].size();
-      int table_b = table.t_head[b->v->id].size();
-      if (table_a != table_b) return  table_a > table_b;
+      int cycle_a = table.t_head[a->v->id].size();
+      int cycle_b = table.t_head[b->v->id].size();
+      if (cycle_a != cycle_b) return  cycle_a > cycle_b;
       if (a->g != b->g) return a->g < b->g;
       return false;
     };
