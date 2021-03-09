@@ -12,12 +12,15 @@ struct CycleCandidate {
 struct TableCycle {
   std::vector<std::vector<CycleCandidate*>> t_head;  // table head
   std::vector<std::vector<CycleCandidate*>> t_tail;  // table tail
-  int nodes_size;
+  Graph* G;
+  int max_fragment_size;  // max fragment size except for potential deadlocks
 
-  TableCycle(const int _nodes_size);
+  TableCycle(Graph* _G, const int _max_fragment_size=-1);
   ~TableCycle();
 
   bool existDuplication(const std::deque<Node*>& path, const std::deque<int>& agents);
+
+  bool isValidTopologyCondition(CycleCandidate* const c) const;
 
   // create new entry
   CycleCandidate* createNewCycleCandidate(const int id, Node* head, CycleCandidate* c_base, Node* tail);

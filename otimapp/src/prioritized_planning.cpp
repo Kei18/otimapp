@@ -4,7 +4,8 @@ const std::string PrioritizedPlanning::SOLVER_NAME = "PrioritizedPlanning";
 
 PrioritizedPlanning::PrioritizedPlanning(Problem* _P)
   : Solver(_P),
-    iter_cnt_max(DEFAULT_ITER_CNT_MAX)
+    iter_cnt_max(DEFAULT_ITER_CNT_MAX),
+    max_fragment_size(DEFAULT_MAX_FRAGMENT_SIZE)
 {
   solver_name = SOLVER_NAME;
 }
@@ -34,7 +35,7 @@ void PrioritizedPlanning::run()
 
     // main
     bool invalid = false;
-    TableCycle table_cycle(G->getNodesSize());
+    TableCycle table_cycle(G, max_fragment_size);
     for (int j = 0; j < P->getNum(); ++j) {
       const int i = id_list[j];
 
@@ -61,15 +62,19 @@ void PrioritizedPlanning::run()
 void PrioritizedPlanning::setParams(int argc, char* argv[])
 {
   struct option longopts[] = {
-    {"iter-cnt-max", no_argument, 0, 'm'},
+    {"iter-cnt-max", required_argument, 0, 'm'},
+    {"max-fragment-size", required_argument, 0, 'f'},
     {0, 0, 0, 0},
   };
   optind = 1;  // reset
   int opt, longindex;
-  while ((opt = getopt_long(argc, argv, "m:", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(argc, argv, "m:f:", longopts, &longindex)) != -1) {
     switch (opt) {
     case 'm':
       iter_cnt_max = std::atoi(optarg);
+      break;
+    case 'f':
+      max_fragment_size = std::atoi(optarg);
       break;
     default:
       break;
@@ -79,5 +84,17 @@ void PrioritizedPlanning::setParams(int argc, char* argv[])
 
 void PrioritizedPlanning::printHelp()
 {
-  printHelpWithoutOption(SOLVER_NAME);
+  std::cout << SOLVER_NAME << "\n"
+
+            << "  -m --iter-cnt-max"
+            << "             "
+            << "maximum iterations for randomizing priorities"
+
+            << "\n"
+
+            << "  -f --max-fragment-size"
+            << "        "
+            << "maximum fragment size except for potential deadlocks"
+
+            << std::endl;
 }

@@ -14,6 +14,9 @@ private:
   int iter_cnt_max;
   static constexpr int DEFAULT_ITER_CNT_MAX = 10;
 
+  int max_fragment_size;
+  static constexpr int DEFAULT_MAX_FRAGMENT_SIZE = -1;
+
   // main
   void run();
 

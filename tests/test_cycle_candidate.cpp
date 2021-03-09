@@ -5,7 +5,7 @@
 TEST(CycleCandidate, createNewEntry)
 {
   auto G = Grid("8x8.map");
-  auto table = TableCycle(G.getNodesSize());
+  auto table = TableCycle(&G);
 
   auto c1 = table.createNewCycleCandidate(0, G.getNode(0), nullptr, G.getNode(1));
 
@@ -35,7 +35,7 @@ TEST(CycleCandidate, createNewEntry)
 TEST(CycleCandidate, registerNewPath)
 {
   auto G = Grid("8x8.map");
-  auto table = TableCycle(G.getNodesSize());
+  auto table = TableCycle(&G);
 
   Path p1 = { G.getNode(0), G.getNode(1), G.getNode(2) };
   auto c1 = table.registerNewPath(0, p1);

@@ -3,8 +3,11 @@
 #include <set>
 #include "../include/util.hpp"
 
-TableCycle::TableCycle(const int _nodes_size)
-  : t_head(_nodes_size), t_tail(_nodes_size), nodes_size(_nodes_size)
+TableCycle::TableCycle(Graph* _G, const int _max_fragment_size)
+  : t_head(_G->getNodesSize()),
+    t_tail(_G->getNodesSize()),
+    G(_G),
+    max_fragment_size(_max_fragment_size)
 {
 }
 
@@ -19,11 +22,40 @@ bool TableCycle::existDuplication(const std::deque<Node*>& path, const std::dequ
 {
   std::set<int> set_agents(agents.begin(), agents.end());
   for (auto c : t_head[path.front()->id]) {
-    if (std::set(c->agents.begin(), c->agents.end()) != set_agents) continue;
+    // different paths
     if (c->path != path) continue;
+
+    // different agents
+    if (std::set(c->agents.begin(), c->agents.end()) != set_agents) continue;
+
+    // duplication exists
     return true;
   }
   return false;
+}
+
+bool TableCycle::isValidTopologyCondition(CycleCandidate* const c) const
+{
+  if (max_fragment_size == -1) return true;
+
+  auto head = c->path.front();
+  auto tail = c->path.back();
+  auto length = (int)c->path.size() - 1;
+
+  // potential deadlock
+  if (head == tail) return true;
+
+  // fast check
+  if (head->manhattanDist(tail) + length > max_fragment_size + 1) return false;
+
+  // finding shortest path
+  Nodes prohibited;
+  for (int t = 1; t < c->path.size() - 1; ++t) prohibited.push_back(c->path[t]);
+  auto p = G->getPath(tail, head, prohibited);
+  if (p.empty()) return false;
+  if ((int)p.size() - 1 + length > max_fragment_size + 1) return false;
+
+  return true;
 }
 
 // create new entry
@@ -51,16 +83,26 @@ CycleCandidate* TableCycle::createNewCycleCandidate
   if (c_base == nullptr || tail != c_base->path.back()) path.push_back(tail);
 
   // check duplication
-  if (existDuplication(path, agents)) return nullptr;
+  if (existDuplication(path, agents)) {
+    delete c;
+    return nullptr;
+  }
 
-  // register
   c->agents = agents;
   c->path = path;
+
+  // check length
+  if (!isValidTopologyCondition(c)) {
+    delete c;
+    return nullptr;
+  }
+
+  // register
   t_head[c->path.front()->id].push_back(c);
   t_tail[c->path.back()->id].push_back(c);
 
   return c;
-};
+}
 
 // return deadlock or nullptr
 CycleCandidate* TableCycle::registerNewPath
@@ -69,6 +111,16 @@ CycleCandidate* TableCycle::registerNewPath
   auto checkPotentialDeadlock =
     [&] (int id, Node* head, CycleCandidate* c_base, Node* tail) -> CycleCandidate*
     {
+      // check length
+      if (c_base != nullptr && max_fragment_size != -1) {
+        auto size = (int)c_base->agents.size() + 1;
+        if (size == max_fragment_size + 1 && head != tail) {
+          return nullptr;
+        } else if (size >= max_fragment_size) {
+          return nullptr;
+        }
+      }
+
       // avoid loop with own path
       if (c_base != nullptr && inArray(id, c_base->agents)) return nullptr;
 
@@ -112,11 +164,28 @@ CycleCandidate* TableCycle::registerNewPath
 
     for (auto c_tail : c_tails) {
       for (auto c_head : c_heads) {
+        // check length
+        if (max_fragment_size != -1) {
+          int size = (int)(c_tail->agents.size() + c_head->agents.size()) + 1;
+          if (size == max_fragment_size + 1 && c_tail->path.front() != c_head->path.back()) {
+            continue;
+          } else if (size > max_fragment_size) {
+            continue;
+          }
+        }
+
         // avoid self loop
         {
           bool self_loop = false;
           for (auto i : c_tail->agents) {
             if (inArray(i, c_head->agents)) {
+              self_loop = true;
+            }
+          }
+          if (self_loop) continue;
+
+          for (auto i : c_tail->path) {
+            if (inArray(i, c_head->path)) {
               self_loop = true;
             }
           }
@@ -145,11 +214,20 @@ CycleCandidate* TableCycle::registerNewPath
           auto c = new CycleCandidate();
           c->agents = agents;
           c->path = path;
+
+          // check topology condition
+          if (!isValidTopologyCondition(c)) {
+            delete c;
+            continue;
+          }
+
           t_head[c->path.front()->id].push_back(c);
           t_tail[c->path.back()->id].push_back(c);
+
           // detect deadlock
           if (c->path.front() == c->path.back()) {
             res = c;
+            std::cout << "hit" << std::endl;
             if (!force) return res;
           }
         }

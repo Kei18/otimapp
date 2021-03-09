@@ -6,7 +6,8 @@ const std::string CompletePlanning::SOLVER_NAME = "CompletePlanning";
 
 
 CompletePlanning::CompletePlanning(Problem* _P)
-  : Solver(_P)
+  : Solver(_P),
+    max_fragment_size(DEFAULT_MAX_FRAGMENT_SIZE)
 {
   solver_name = SOLVER_NAME;
 }
@@ -75,7 +76,7 @@ void CompletePlanning::run()
 
 CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
 {
-  TableCycle table(G->getNodesSize());
+  TableCycle table(G, max_fragment_size);
   auto n = std::make_shared<HighLevelNode>();
   for (int i = 0; i < P->getNum(); ++i) {
     auto p = getPrioritizedPath(i, n->paths, table);
@@ -151,7 +152,7 @@ Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
 CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths) const
 {
   Constraints constraints = {};
-  TableCycle table(G->getNodesSize());
+  TableCycle table(G, max_fragment_size);
 
   // main loop
   for (int i = 0; i < P->getNum(); ++i) {
@@ -209,9 +210,30 @@ int CompletePlanning::countsSwapConlicts
 
 void CompletePlanning::setParams(int argc, char* argv[])
 {
+  struct option longopts[] = {
+    {"max-fragment-size", required_argument, 0, 'f'},
+    {0, 0, 0, 0},
+  };
+  optind = 1;  // reset
+  int opt, longindex;
+  while ((opt = getopt_long(argc, argv, "f:", longopts, &longindex)) != -1) {
+    switch (opt) {
+    case 'f':
+      max_fragment_size = std::atoi(optarg);
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 void CompletePlanning::printHelp()
 {
-  printHelpWithoutOption(SOLVER_NAME);
+  std::cout << SOLVER_NAME << "\n"
+
+            << "  -f --max-fragment-size"
+            << "        "
+            << "maximum fragment size except for potential deadlocks"
+
+            << std::endl;
 }
