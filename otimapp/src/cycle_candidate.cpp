@@ -26,7 +26,8 @@ bool TableCycle::existDuplication(const std::deque<Node*>& path, const std::dequ
     if (c->path != path) continue;
 
     // different agents
-    if (std::set(c->agents.begin(), c->agents.end()) != set_agents) continue;
+    auto c_agents = std::set(c->agents.begin(), c->agents.end())
+    if (c_agents != set_agents) continue;
 
     // duplication exists
     return true;

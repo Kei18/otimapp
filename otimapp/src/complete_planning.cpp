@@ -159,7 +159,7 @@ CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths
     auto c = table.registerNewPath(i, paths[i]);
     if (c != nullptr) {
       // create constraints
-      for (int i = 0; i < c->agents.size(); ++i) {
+      for (int i = 0; i < (int)c->agents.size(); ++i) {
         constraints.push_back(std::make_shared<Constraint>(c->agents[i], c->path[i], c->path[i+1]));
       }
       break;
