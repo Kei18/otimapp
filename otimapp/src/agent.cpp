@@ -36,7 +36,7 @@ void Agent::activate(std::vector<int>& occupancy)
 
 Node* Agent::getNextNode() const
 {
-  return (t < path.size()-1) ? path[t+1] : nullptr;
+  return (t < (int)path.size()-1) ? path[t+1] : nullptr;
 }
 
 bool Agent::isFinished() const

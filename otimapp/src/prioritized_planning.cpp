@@ -52,7 +52,7 @@ void PrioritizedPlanning::run()
       }
 
       // register new
-      auto c = table_cycle.registerNewPath(i, solution[i]);
+      auto c = table_cycle.registerNewPath(i, solution[i], false, getRemainedTime());
       if (c != nullptr) halt("detect deadlock");
     }
     solved = !invalid;
@@ -94,7 +94,7 @@ void PrioritizedPlanning::printHelp()
 
             << "  -f --max-fragment-size"
             << "        "
-            << "maximum fragment size except for potential deadlocks"
+            << "maximum fragment size"
 
             << std::endl;
 }

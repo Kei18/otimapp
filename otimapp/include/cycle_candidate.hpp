@@ -27,7 +27,9 @@ struct TableCycle {
 
   // return deadlock or nullptr
   // force = false -> return when finding first cycle, false -> register all info
-  CycleCandidate* registerNewPath(const int id, const Path path, const bool force = false);
+  CycleCandidate* registerNewPath(const int id, const Path path,
+                                  const bool force = false,
+                                  const int time_limit = -1);
 
   void println();
 };

@@ -26,7 +26,7 @@ bool TableCycle::existDuplication(const std::deque<Node*>& path, const std::dequ
     if (c->path != path) continue;
 
     // different agents
-    auto c_agents = std::set(c->agents.begin(), c->agents.end())
+    std::set<int> c_agents = std::set(c->agents.begin(), c->agents.end());
     if (c_agents != set_agents) continue;
 
     // duplication exists
@@ -47,14 +47,14 @@ bool TableCycle::isValidTopologyCondition(CycleCandidate* const c) const
   if (head == tail) return true;
 
   // fast check
-  if (head->manhattanDist(tail) + length > max_fragment_size + 1) return false;
+  if (head->manhattanDist(tail) + length > max_fragment_size) return false;
 
   // finding shortest path
   Nodes prohibited;
   for (int t = 1; t < c->path.size() - 1; ++t) prohibited.push_back(c->path[t]);
   auto p = G->getPath(tail, head, prohibited);
   if (p.empty()) return false;
-  if ((int)p.size() - 1 + length > max_fragment_size + 1) return false;
+  if ((int)p.size() - 1 + length > max_fragment_size) return false;
 
   return true;
 }
@@ -107,7 +107,7 @@ CycleCandidate* TableCycle::createNewCycleCandidate
 
 // return deadlock or nullptr
 CycleCandidate* TableCycle::registerNewPath
-(const int id, const Path path, const bool force)
+(const int id, const Path path, const bool force, const int time_limit)
 {
   auto checkPotentialDeadlock =
     [&] (int id, Node* head, CycleCandidate* c_base, Node* tail) -> CycleCandidate*
@@ -115,9 +115,9 @@ CycleCandidate* TableCycle::registerNewPath
       // check length
       if (c_base != nullptr && max_fragment_size != -1) {
         auto size = (int)c_base->agents.size() + 1;
-        if (size == max_fragment_size + 1 && head != tail) {
+        if (size > max_fragment_size) {
           return nullptr;
-        } else if (size >= max_fragment_size) {
+        } else if (size == max_fragment_size && head != tail) {
           return nullptr;
         }
       }
@@ -134,9 +134,13 @@ CycleCandidate* TableCycle::registerNewPath
     };
 
   CycleCandidate* res = nullptr;
+  auto t_s = Time::now();
 
   // update cycles step by step
   for (int t = 1; t < (int)path.size(); ++t) {
+    // check time limit
+    if (time_limit >= 0 && getElapsedTime(t_s) > time_limit) return nullptr;
+
     auto v_before = path[t-1];
     auto v_next = path[t];
 
@@ -164,13 +168,17 @@ CycleCandidate* TableCycle::registerNewPath
       if (!inArray(id, c_head->agents)) c_heads.push_back(c_head);
 
     for (auto c_tail : c_tails) {
+
+      // check time limit
+      if (time_limit >= 0 && getElapsedTime(t_s) > time_limit) return nullptr;
+
       for (auto c_head : c_heads) {
         // check length
         if (max_fragment_size != -1) {
           int size = (int)(c_tail->agents.size() + c_head->agents.size()) + 1;
-          if (size == max_fragment_size + 1 && c_tail->path.front() != c_head->path.back()) {
+          if (size > max_fragment_size) {
             continue;
-          } else if (size > max_fragment_size) {
+          } else if (size == max_fragment_size && c_tail->path.front() != c_head->path.back()) {
             continue;
           }
         }

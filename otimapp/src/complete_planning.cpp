@@ -40,12 +40,8 @@ void CompletePlanning::run()
   int iteration = 0;
   while (!Tree.empty()) {
     ++iteration;
-    // check limitation
-    if (overCompTime()) {
-      info(" ", "timeout");
-      break;
-    }
 
+    // popup one node
     n = Tree.top();
     Tree.pop();
 
@@ -56,6 +52,13 @@ void CompletePlanning::run()
 
     // check conflict
     auto constraints = getConstraints(n->paths);
+
+    // check limitation
+    if (overCompTime()) {
+      info(" ", "timeout");
+      break;
+    }
+
     if (constraints.empty()) {
       solved = true;
       break;
@@ -88,7 +91,7 @@ CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
       }
     }
     n->paths.push_back(p);
-    table.registerNewPath(i, p, true);
+    table.registerNewPath(i, p, true, getRemainedTime());
   }
   n->f = countsSwapConlicts(n->paths);
   return n;
@@ -156,7 +159,7 @@ CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths
 
   // main loop
   for (int i = 0; i < P->getNum(); ++i) {
-    auto c = table.registerNewPath(i, paths[i]);
+    auto c = table.registerNewPath(i, paths[i], false, getRemainedTime());
     if (c != nullptr) {
       // create constraints
       for (int i = 0; i < (int)c->agents.size(); ++i) {
@@ -233,7 +236,7 @@ void CompletePlanning::printHelp()
 
             << "  -f --max-fragment-size"
             << "        "
-            << "maximum fragment size except for potential deadlocks"
+            << "maximum fragment size"
 
             << std::endl;
 }
