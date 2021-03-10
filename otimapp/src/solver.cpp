@@ -281,16 +281,16 @@ Path Solver::getPath
   return path;
 }
 
-Path Solver::getPrioritizedPath(const int id, const Plan& paths, TableCycle& table)
+Path Solver::getPrioritizedPath(const int id, const Plan& paths, TableFragment& table)
 {
   Node* const g = P->getGoal(id);
 
   auto compare = [&](AstarNode* a, AstarNode* b) {
       if (a->f != b->f) return a->f > b->f;
       // tie break
-      int cycle_a = table.t_head[a->v->id].size();
-      int cycle_b = table.t_head[b->v->id].size();
-      if (cycle_a != cycle_b) return  cycle_a > cycle_b;
+      int fragments_a = table.t_from[a->v->id].size();
+      int fragments_b = table.t_from[b->v->id].size();
+      if (fragments_a != fragments_b) return  fragments_a > fragments_b;
       if (a->g != b->g) return a->g < b->g;
       return false;
     };
@@ -300,7 +300,7 @@ Path Solver::getPrioritizedPath(const int id, const Plan& paths, TableCycle& tab
     if (child != g && table_goals[child->id]) return true;
 
     // condition 2, avoid potential deadlocks
-    for (auto c : table.t_tail[parent->id]) {
+    for (auto c : table.t_to[parent->id]) {
       if (c->path.front() == child) return true;
     }
 

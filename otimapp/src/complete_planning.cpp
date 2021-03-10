@@ -1,6 +1,4 @@
 #include "../include/complete_planning.hpp"
-#include "../include/cycle_candidate.hpp"
-
 
 const std::string CompletePlanning::SOLVER_NAME = "CompletePlanning";
 
@@ -79,32 +77,52 @@ void CompletePlanning::run()
 
 CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
 {
-  TableCycle table(G, max_fragment_size);
   auto n = std::make_shared<HighLevelNode>();
+
+  // to manage potential deadlocks
+  TableFragment table(G, max_fragment_size);
+
   for (int i = 0; i < P->getNum(); ++i) {
+    // find a deadlock-free path as much as possible
     auto p = getPrioritizedPath(i, n->paths, table);
+
+    // failed to find such a path
     if (p.empty()) {
+      // returns a path with potential deadlocks
       p = getConstrainedPath(i, n);
+      // fail to find a path
       if (p.empty()) {
         n->valid = false;
         break;
       }
     }
     n->paths.push_back(p);
+
+    // update tables
     table.registerNewPath(i, p, true, getRemainedTime());
   }
+
+  // counts head-on collisions
   n->f = countsSwapConlicts(n->paths);
   return n;
 }
 
 CompletePlanning::HighLevelNode_p CompletePlanning::invoke(HighLevelNode_p n, Constraint_p c)
 {
+  // create new constraint
   auto new_constraints = n->constraints;
   new_constraints.push_back(c);
+
+  // create new solution
   auto paths = n->paths;
   paths[c->agent] = getConstrainedPath(c->agent, n);
+
+  // failed to find a path
   bool valid = !paths[c->agent].empty();
+
+  // count head-on collisions
   int f = countsSwapConlicts(c->agent, n->f, n->paths, paths[c->agent]);
+
   return std::make_shared<HighLevelNode>(paths, new_constraints, f, valid);
 }
 
@@ -112,21 +130,23 @@ Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
 {
   Node* const g = P->getGoal(id);
 
+  // extract relevant constraints
   Constraints constraints;
   for (auto c : node->constraints) {
     if (c->agent == id) constraints.push_back(c);
   }
+
   auto checkInvalidMove = [&](Node* child, Node* parent) {
     // condition 1, avoid goals
     if (child != g && table_goals[child->id]) return true;
-    // condition 2, follow limitation
+    // condition 2, follow constraints
     for (auto c : constraints) {
       if (c->child  == child && c->parent == parent) return true;
     }
     return false;
   };
 
-  // create heuristics
+  // for tie-breaking
   std::vector<std::vector<int>> from_to_table(G->getNodesSize());
   for (int i = 0; i < (int)node->paths.size(); ++i) {
     if (i == id) continue;
@@ -139,27 +159,30 @@ Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
   auto compare = [&](AstarNode* a, AstarNode* b) {
     // greedy search
     if (pathDist(id, a->v) != pathDist(id, b->v)) return pathDist(id, a->v) > pathDist(id, b->v);
-    // tie break
+    // tie break, avoid swap conflicts
     auto table_a = from_to_table[a->p->v->id];
     auto table_b = from_to_table[b->p->v->id];
     bool swap_a = std::find(table_a.begin(), table_a.end(), a->v->id) != table_a.end();
     bool swap_b = std::find(table_b.begin(), table_b.end(), b->v->id) != table_b.end();
     if (swap_a != swap_b) return (int)swap_a < (int)swap_b;
+    // tie break, distance so far
     if (a->g != b->g) return a->g < b->g;
     return false;
   };
 
+  // use A-star search
   return Solver::getPath(id, checkInvalidMove, compare);
 }
 
 CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths) const
 {
   Constraints constraints = {};
-  TableCycle table(G, max_fragment_size);
+  TableFragment table(G, max_fragment_size);
 
   // main loop
   for (int i = 0; i < P->getNum(); ++i) {
     auto c = table.registerNewPath(i, paths[i], false, getRemainedTime());
+    // found potential deadlocks
     if (c != nullptr) {
       // create constraints
       for (int i = 0; i < (int)c->agents.size(); ++i) {
@@ -174,7 +197,7 @@ CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths
 
 int CompletePlanning::countsSwapConlicts(const Plan& paths)
 {
-  // TODO: develop efficient counts method
+  // TODO: develop efficient counting algorithm
   int cnt = 0;
   const int num_agents = paths.size();
   for (int i = 0; i < num_agents; ++i) {
@@ -189,6 +212,7 @@ int CompletePlanning::countsSwapConlicts(const Plan& paths)
   return cnt;
 }
 
+// reusing the past data
 int CompletePlanning::countsSwapConlicts
 (const int id, const int old_f_val, const Plan& old_paths, const Path& new_path)
 {

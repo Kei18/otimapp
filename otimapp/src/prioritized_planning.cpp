@@ -35,7 +35,7 @@ void PrioritizedPlanning::run()
 
     // main
     bool invalid = false;
-    TableCycle table_cycle(G, max_fragment_size);
+    TableFragment table(G, max_fragment_size);
     for (int j = 0; j < P->getNum(); ++j) {
       const int i = id_list[j];
 
@@ -43,7 +43,9 @@ void PrioritizedPlanning::run()
            ", iter:", itr_cnt,
            ", agent-" + std::to_string(i), "starts planning,",
            "init-dist:", pathDist(i), ", progress:", j + 1, "/", P->getNum());
-      solution[i] = getPrioritizedPath(i, solution, table_cycle);
+
+      // get prioritized path
+      solution[i] = getPrioritizedPath(i, solution, table);
 
       // failed
       if (solution[i].empty() || overCompTime()) {
@@ -51,8 +53,8 @@ void PrioritizedPlanning::run()
         break;
       }
 
-      // register new
-      auto c = table_cycle.registerNewPath(i, solution[i], false, getRemainedTime());
+      // register new path
+      auto c = table.registerNewPath(i, solution[i], false, getRemainedTime());
       if (c != nullptr) halt("detect deadlock");
     }
     solved = !invalid;

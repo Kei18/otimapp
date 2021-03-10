@@ -9,7 +9,7 @@
 
 #include "problem.hpp"
 #include "util.hpp"
-#include "cycle_candidate.hpp"
+#include "fragment.hpp"
 
 class MinimumSolver
 {
@@ -67,9 +67,9 @@ protected:
   // -------------------------------
   // main
 private:
-  void exec();
+  void exec();  // call run
 protected:
-  virtual void run() {} // main
+  virtual void run() {}  // main
 
   // -------------------------------
   // utilities for time
@@ -127,7 +127,7 @@ public:
 public:
   // use grid-pathfinding
   Path getPath(Node* const s, Node* const g, bool cache=false) const { return G->getPath(s, g, cache); }
-  // A-star search
+  // for A-star search
   struct AstarNode {
     Node* v;
     int g;
@@ -137,13 +137,14 @@ public:
   using AstarNodes = std::vector<AstarNode*>;
   using CheckInvalidMove = std::function<bool(Node*, Node*)>;
   using CompareAstarNodes = std::function<bool(AstarNode*, AstarNode*)>;
-
   static CompareAstarNodes compareAstarNodesDefault;
 
+  // implementation of A-star search
   Path getPath(const int id,
                CheckInvalidMove checkInvalidMove,
                CompareAstarNodes compare = compareAstarNodesDefault);
-  Path getPrioritizedPath(const int id, const Plan& paths, TableCycle& table);
+  // prioritized planning
+  Path getPrioritizedPath(const int id, const Plan& paths, TableFragment& table);
 
 public:
   Solver(Problem* _P);
