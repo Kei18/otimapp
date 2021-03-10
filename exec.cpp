@@ -17,6 +17,9 @@ int main(int argc, char* argv[])
   float ub_delay_prob = DEFAULT_UB_DELAY_PROB;
   bool verbose = false;
 
+  enum PROBLEM_TYPE { P_MAPF_DP, P_PRIMITIVE };
+  PROBLEM_TYPE problem_type = PROBLEM_TYPE::P_MAPF_DP;
+
   struct option longopts[] = {
       {"instance", required_argument, 0, 'i'},
       {"plan", required_argument, 0, 'p'},
@@ -25,13 +28,14 @@ int main(int argc, char* argv[])
       {"ub-delay-prob", required_argument, 0, 'u'},
       {"verbose", no_argument, 0, 'v'},
       {"help", no_argument, 0, 'h'},
+      {"problem-type", required_argument, 0, 'P'},
       {0, 0, 0, 0},
   };
 
   // command line args
   int opt, longindex;
   opterr = 0;  // ignore getopt error
-  while ((opt = getopt_long(argc, argv, "i:p:o:s:u:vh", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(argc, argv, "i:p:o:s:u:vhP:", longopts, &longindex)) != -1) {
     switch (opt) {
       case 'i':
         instance_file = std::string(optarg);
@@ -50,6 +54,9 @@ int main(int argc, char* argv[])
         break;
       case 'v':
         verbose = true;
+        break;
+      case 'P':
+        if (std::string(optarg) == "PRIMITIVE") problem_type = PROBLEM_TYPE::P_PRIMITIVE;
         break;
       case 'h':
         printHelp();
@@ -70,10 +77,15 @@ int main(int argc, char* argv[])
   Problem P = Problem(instance_file);
 
   // emulate execution
-  auto exec = Execution(&P, plan_file, seed, ub_delay_prob, verbose);
-  exec.run();
-  exec.printResult();
-  exec.makeLog(output_file);
+  std::unique_ptr<Execution> exec;
+  if (problem_type == PROBLEM_TYPE::P_PRIMITIVE) {
+    exec = std::make_unique<PrimitiveExecution>(&P, plan_file, seed, verbose);
+  } else {
+    exec = std::make_unique<MAPF_DP_Execution>(&P, plan_file, seed, ub_delay_prob, verbose);
+  }
+  exec->run();
+  exec->printResult();
+  exec->makeLog(output_file);
   if (verbose) {
     std::cout << "save execution result as " << output_file << std::endl;
   }
@@ -91,6 +103,7 @@ void printHelp()
             << "  -s --seed                     seed\n"
             << "  -u --ub-delay-prob            upper bound of delay probabilities\n"
             << "  -v --verbose                  print additional info\n"
+            << "  -P --problem-type             { MAPF_DP, PRIMITIVE }\n"
             << "  -h --help                     help"
             << std::endl;
 }

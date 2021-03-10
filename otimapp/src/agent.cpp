@@ -10,7 +10,27 @@ Agent::Agent(int _id, const Path& _path)
 {
 }
 
-void Agent::activate(std::vector<int>& occupancy)
+Node* Agent::getNextNode() const
+{
+  return (t < (int)path.size()-1) ? path[t+1] : nullptr;
+}
+
+bool Agent::isFinished() const
+{
+  return mode == Mode::CONTRACTED && t == (int)path.size()-1;
+}
+
+Agent::State Agent::getState() const
+{
+  return std::make_tuple(id, t, mode, head, tail);
+}
+
+MAPF_DP_Agent::MAPF_DP_Agent(int _id, const Path& _path)
+  : Agent(_id, _path)
+{
+}
+
+void MAPF_DP_Agent::activate(std::vector<int>& occupancy)
 {
   if (isFinished()) return;
 
@@ -34,17 +54,20 @@ void Agent::activate(std::vector<int>& occupancy)
   }
 }
 
-Node* Agent::getNextNode() const
+PrimitiveAgent::PrimitiveAgent(int _id, const Path& _path)
+  : Agent(_id, _path)
 {
-  return (t < (int)path.size()-1) ? path[t+1] : nullptr;
 }
 
-bool Agent::isFinished() const
+void PrimitiveAgent::activate(std::vector<int>& occupancy)
 {
-  return mode == Mode::CONTRACTED && t == (int)path.size()-1;
-}
-
-Agent::State Agent::getState() const
-{
-  return std::make_tuple(id, t, mode, head, tail);
+  if (isFinished()) return;
+  auto v = getNextNode();
+  if (occupancy[v->id] == NIL) {
+    // update state
+    occupancy[tail->id] = NIL;
+    tail = v;
+    occupancy[v->id] = id;
+    t += 1;
+  }
 }

@@ -7,20 +7,18 @@
 #include "lib_execution.hpp"
 
 class Execution {
-private:
+protected:
+  std::string problem_name;      // problem name
   Problem* const P;              // problem instance
   const std::string plan_file;   // file of planning result
   bool solved;                   // check validity of the plan
   Plan plan;                     // planning
   const int seed;                // seed
   std::mt19937* MT;              // seed
-  const float ub_delay_prob;     // upper bound of delay probabilities
   const bool verbose;            // print info or not
 
   Configs exec_result;             // execution result
-  std::vector<int> occupancy;      // occupancy[node_id] = agent_id or Agent::NIL
-  std::vector<float> delay_probs;  // array of delay probabilities
-  std::vector<Agent::State> HIST;  // execution history
+  std::vector<MAPF_DP_Agent::State> HIST;  // execution history
   int emulation_time;              // time required for emulation
 
   // -------------------------------
@@ -34,13 +32,20 @@ private:
   Plan getPlan() const;
   bool getSolved() const;
 
+  // -------------------------------
+  // main
+  virtual void simulate() {}
+
+  // -------------------------------
+  // log
+  virtual void makeLogSpecific(std::ofstream& log) const {};
+
 public:
   Execution(Problem* _P,
             std::string _plan_file,
             int _seed = DEFAULT_SEED,
-            float _ub_delay_prob = DEFAULT_UB_DELAY_PROB,
             bool _verbose = false);
-  ~Execution();
+  virtual ~Execution();
 
   // -------------------------------
   // main
@@ -54,4 +59,46 @@ public:
   // others
   void printResult() const;
   void makeLog(const std::string& logfile = DEFAULT_EXEC_OUTPUT_FILE) const;
+};
+
+// MAPF_DP
+class MAPF_DP_Execution : public Execution
+{
+private:
+  static const std::string PROBLEM_NAME;
+
+  const float ub_delay_prob;     // upper bound of delay probabilities
+  std::vector<float> delay_probs;  // array of delay probabilities
+
+  void makeLogSpecific(std::ofstream& log) const;
+
+  // -------------------------------
+  // main
+  void simulate();
+
+public:
+  MAPF_DP_Execution(Problem* _P,
+                    std::string _plan_file,
+                    int _seed = DEFAULT_SEED,
+                    float _ub_delay_prob = DEFAULT_UB_DELAY_PROB,
+                    bool _verbose = false);
+  ~MAPF_DP_Execution() {}
+};
+
+// Primitive Execution
+class PrimitiveExecution : public Execution
+{
+private:
+  static const std::string PROBLEM_NAME;
+
+  // -------------------------------
+  // main
+  void simulate();
+
+public:
+  PrimitiveExecution(Problem* _P,
+                     std::string _plan_file,
+                     int _seed = DEFAULT_SEED,
+                     bool _verbose = false);
+  ~PrimitiveExecution() {}
 };

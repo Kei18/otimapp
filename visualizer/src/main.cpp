@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
 
   Result* res = new Result;  // deleted in ofApp destructor
   readSetResult(argv[1], res);
+
   if (!res->solved) {
     std::cout << "This result seems to be unsolved instance" << std::endl;
     delete res;

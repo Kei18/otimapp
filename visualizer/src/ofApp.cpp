@@ -50,7 +50,12 @@ void ofApp::setup()
   goal_rad  = std::max((float)scale/4.0, 2.0);
   font_size = std::max(scale/8, 6);
 
-  ofSetWindowShape(w * 2, h);
+  if (P->transitions.empty()) {
+    ofSetWindowShape(w, h);
+  } else {
+    ofSetWindowShape(w * 2, h);
+  }
+
   ofBackground(Color::bg);
   ofSetCircleResolution(32);
   ofSetFrameRate(30);
@@ -109,12 +114,14 @@ void ofApp::draw()
   ofNoFill();
   ofSetColor(Color::focus);
   ofSetLineWidth(focus_width);
-  if (focus_tab == TAB::TAB_TIME_IND) {
-    ofDrawRectangle(focus_width/2, focus_width/2,
-                    w-focus_width, h-focus_width);
-  } else {
-    ofDrawRectangle(focus_width/2 + w, focus_width/2,
-                    w-focus_width, h-focus_width);
+  if (!P->transitions.empty()) {
+    if (focus_tab == TAB::TAB_TIME_IND) {
+      ofDrawRectangle(focus_width/2, focus_width/2,
+                      w-focus_width, h-focus_width);
+    } else {
+      ofDrawRectangle(focus_width/2 + w, focus_width/2,
+                      w-focus_width, h-focus_width);
+    }
   }
 
   // draw nodes
@@ -129,13 +136,18 @@ void ofApp::draw()
       int y_draw = y*scale-scale/2+0.5
         + BufferSize::window_y_top_buffer + scale/2;
       ofDrawRectangle(x_draw, y_draw, scale-0.5, scale-0.5);
-      ofDrawRectangle(x_draw + w, y_draw, scale-0.5, scale-0.5);
+      if (!P->transitions.empty()) {
+        ofDrawRectangle(x_draw + w, y_draw, scale-0.5, scale-0.5);
+      }
       if (flg_font) {
         ofSetColor(Color::font);
         font.drawString(std::to_string(y*P->G->getWidth()+x),
                         x_draw + 1, y_draw + font_size + 1);
-        font.drawString(std::to_string(y*P->G->getWidth()+x),
-                        x_draw + 1 + w, y_draw + font_size + 1);
+
+        if (!P->transitions.empty()) {
+          font.drawString(std::to_string(y*P->G->getWidth()+x),
+                          x_draw + 1 + w, y_draw + font_size + 1);
+        }
       }
     }
   }
@@ -149,7 +161,10 @@ void ofApp::draw()
       int x = pos1.x + BufferSize::window_x_buffer + scale/2;
       int y = pos1.y + BufferSize::window_y_top_buffer + scale/2;
       ofDrawRectangle(x - goal_rad/2, y - goal_rad/2, goal_rad, goal_rad);
-      ofDrawRectangle(x - goal_rad/2 + w, y - goal_rad/2, goal_rad, goal_rad);
+
+      if (!P->transitions.empty()) {
+        ofDrawRectangle(x - goal_rad/2 + w, y - goal_rad/2, goal_rad, goal_rad);
+      }
     }
   }
 
@@ -213,7 +228,7 @@ void ofApp::draw()
     }
 
     // === mapf execution ===
-    {
+    if (!P->transitions.empty()) {
       ofSetColor(Color::agents[i % Color::agents.size()]);
       int t1 = (int)timestep_slider;
       int t2 = t1 + 1;
@@ -291,22 +306,24 @@ void ofApp::draw()
   font_info.drawString("activated_cnt: "
                        + std::to_string(P->activated_cnt),
                        x, y+=15);
-  x = 220 + w;
-  y = 5;
-  font_info.drawString("makespan: "
-                       + std::to_string(P->makespan)
-                       + ", soc: "
-                       + std::to_string(P->soc),
-                       x, y+=15);
-  font_info.drawString("ub_delay_prob: " + std::to_string(P->ub_delay_prob),
-                       x, y+=15);
+
+  if (!P->transitions.empty()) {
+    x = 220 + w;
+    y = 5;
+    font_info.drawString("makespan: "
+                         + std::to_string(P->makespan)
+                         + ", soc: "
+                         + std::to_string(P->soc),
+                         x, y+=15);
+    font_info.drawString("ub_delay_prob: " + std::to_string(P->ub_delay_prob), x, y+=15);
+  }
 
   gui_time_ind.draw();
   gui_mapf.draw();
 }
 
 void ofApp::keyPressed(int key) {
-  if (key == 9) {  // tab
+  if (key == 9 && !P->transitions.empty()) {  // tab
     focus_tab = (focus_tab == TAB::TAB_TIME_IND) ? TAB::TAB_MAPF : TAB::TAB_TIME_IND;
   }
   if (key == 'r') {

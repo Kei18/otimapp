@@ -40,7 +40,7 @@ static int getSOC(const Configs& result)
 
 // validate the results
 [[maybe_unused]]
-static bool validate(const Configs& configs, Problem* P)
+static bool validateMAPFPlan(const Configs& configs, Problem* P)
 {
   if (configs.empty()) return false;
   const int makespan = getMakespan(configs);
