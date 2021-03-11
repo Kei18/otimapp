@@ -2,7 +2,7 @@ otimapp
 ===
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-A simulator and visualizer used in a paper "Offline Time-Independent Multi-Agent Path Planning".
+A simulator and visualizer used in a paper "Offline Time-Independent Multi-Agent Path Planning" (OTIMAPP).
 It is written in C++(17) with [CMake](https://cmake.org/) (≥v3.16) build.
 The repository uses [Google Test](https://github.com/google/googletest) and [the original library for 2D pathfinding](https://github.com/Kei18/grid-pathfinding) as git submodules.
 The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on macOS.
@@ -14,6 +14,9 @@ The visualizer uses [openFrameworks](https://openframeworks.cc) and works only o
 | ubuntu-latest | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=public) | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=dev) |
 
 ## Demo
+![100 agents in arena](./material/sample.gif)
+
+4-tolerant solution planned by prioritized planning, execution on MAPF-DP
 
 ## Building
 
@@ -27,11 +30,26 @@ make
 ```
 
 ## Usage
+### Planning
+by Prioritized Planning, for 4-tolerant solutions
+```sh
+./app -i ../instances/sample.txt -s PrioritizedPlanning -o ./plan.txt -v -f 4
+```
 
+### Execution
+MAPF-DP, with upper bound of delay probabilities is 0.5
+```sh
+./exec -i ../instances/sample.txt -p ./plan.txt -o ./exec.txt -v -u 0.5
+```
 
+### Help
 You can find details and explanations for all parameters with:
 ```sh
 ./app --help
+```
+or
+```sh
+./exec --help
 ```
 
 Please see `instances/sample.txt` for parameters of instances, e.g., filed, number of agents, time limit, etc.
@@ -42,20 +60,50 @@ This is an example output of `../instances/sample.txt`.
 Note that `(x, y)` denotes location.
 `(0, 0)` is the left-top point.
 `(x, 0)` is the location at `x`-th column and 1st row.
-```
-instance= ../instances/sample.txt
+A position `(x, y)` are also represented as a single number `i = widht*y + x`.
+
+- `plan.txt`
+
+```txt
+instance=../instances/sample.txt
 agents=100
 map_file=arena.map
-solver=PIBT
+seed=1
+solver=PrioritizedPlanning
 solved=1
-soc=3403
-makespan=68
-comp_time=58
-starts=(32,21),(40,4),(20,22),(26,18), [...]
-goals=(10,16),(30,21),(11,42),(44,6), [...]
-solution=
-0:(32,21),(40,4),(20,22),(26,18), [...]
-1:(31,21),(40,5),(20,23),(27,18), [...]
+unsolvable=0
+comp_time=97
+starts=(32,21),(40,4),(20,22),[...]
+goals=(10,16),(30,21),(11,42),[...]
+sum-of-path-length:3401
+plan=
+0:1061,1012,963,[...]
+1:236,285,334,[...]
+[...]
+```
+
+- `exec.txt`
+
+```txt
+// log from ./plan.txt
+---
+(copy of plan.txt)
+---
+// exec result
+---
+problem_name=MAPF_DP
+plan=./plan.txt
+ub_delay_prob=0.5
+delay_probs=0.274407,0.296422,[...]
+exec_succeed=1
+exec_seed=0
+emulation_time=3
+activate_cnts=7158
+makespan=106
+soc=5022
+result=
+0:(32,21),(40,4),(20,22),[...]
+1:(32,20),(40,5),(20,22),[..]
 [...]
 ```
 
@@ -75,12 +123,13 @@ Note: The script of openFrameworks seems to contain bugs. Check this [issue](htt
 ### Usage
 ```sh
 cd build
-../visualize.sh result.txt
+../visualize.sh ./exec.txt
 ```
 
 You can manipulate it via your keyboard. See printed info.
 
 ## Experimental Environment
+[![v1.0](https://img.shields.io/badge/tag-v1.0-blue.svg?style=flat)](https://github.com/Kei18/otimapp/releases/tag/v1.0)
 
 Scripts for the experiments are in `exp_scripts/`.
 

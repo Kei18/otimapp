@@ -41,3 +41,9 @@ jobs:
       - name: test
         working-directory: build
         run: ./test
+
+      - name: run-app
+        working-directory: build
+        run: |
+          ./app -i ../instances/sample.txt -s PrioritizedPlanning -o ./plan.txt -v -f 4
+          ./exec -i ../instances/sample.txt -p ./plan.txt -o ./exec.txt -v -u 0.5

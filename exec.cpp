@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 void printHelp()
 {
   std::cout << "\nUsage: ./exec [OPTIONS]\n"
-            << "\n**instance and planning file is necessary to run execution simulator**\n\n"
+            << "\n**instance and planning files are necessary to run execution simulator**\n\n"
             << "  -i --instance [FILE_PATH]     instance file path\n"
             << "  -p --plan [FILE_PATH]         plan file path\n"
             << "  -o --output [FILE_PATH]       ouptut file path\n"
