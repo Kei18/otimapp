@@ -56,9 +56,7 @@ private:
   Constraints getConstraints(const Plan& paths) const;
 
   // count #(head-on collisions)
-  static int countsSwapConlicts(const Plan& paths);
-  static int countsSwapConlicts
-  (const int id, const int old_f_val, const Plan& old_paths, const Path& new_path);
+  int countsSwapConlicts(const Plan& paths);
 
 public:
   CompletePlanning(Problem* _P);

@@ -127,7 +127,7 @@ CompletePlanning::HighLevelNode_p CompletePlanning::invoke(HighLevelNode_p n, Co
   m->valid = !m->paths[c->agent].empty();
 
   // count head-on collisions
-  m->f = countsSwapConlicts(c->agent, n->f, n->paths, m->paths[c->agent]);
+  m->f = countsSwapConlicts(m->paths);
 
   return m;
 }
@@ -203,41 +203,20 @@ CompletePlanning::Constraints CompletePlanning::getConstraints(const Plan& paths
 
 int CompletePlanning::countsSwapConlicts(const Plan& paths)
 {
-  // TODO: develop efficient counting algorithm
+  std::vector<std::vector<int>> to_from_table(G->getNodesSize());
   int cnt = 0;
-  const int num_agents = paths.size();
-  for (int i = 0; i < num_agents; ++i) {
-    for (int j = i + 1; j < num_agents; ++j) {
-      for (int k = 1; k < (int)paths[i].size(); ++k) {
-        for (int l = 1; l < (int)paths[j].size(); ++l) {
-          if (paths[i][k-1] == paths[j][l] && paths[i][k] == paths[j][l-1]) ++cnt;
-        }
+  for (auto p : paths) {
+    for (int t = 1; t < (int)p.size(); ++t) {
+      auto u = p[t-1];
+      auto v = p[t];
+      // check head-on collisions
+      for (auto i : to_from_table[v->id]) {
+        if (i == u->id) ++cnt;
       }
+      // register
+      to_from_table[u->id].push_back(v->id);
     }
   }
-  return cnt;
-}
-
-// reusing the past data
-int CompletePlanning::countsSwapConlicts
-(const int id, const int old_f_val, const Plan& old_paths, const Path& new_path)
-{
-  int cnt = old_f_val;
-  const int num_agents = old_paths.size();
-
-  // count old_conflicts
-  for (int j = 0; j < num_agents; ++j) {
-    if (j == id) continue;
-    for (int l = 1; l < (int)old_paths[j].size(); ++l) {
-      for (int k = 1; k < (int)old_paths[id].size(); ++k) {
-        if (old_paths[id][k-1] == old_paths[j][l] && old_paths[id][k] == old_paths[j][l-1]) --cnt;
-      }
-      for (int k = 1; k < (int)new_path.size(); ++k) {
-        if (new_path[k-1] == old_paths[j][l] && new_path[k] == old_paths[j][l-1]) ++cnt;
-      }
-    }
-  }
-
   return cnt;
 }
 
