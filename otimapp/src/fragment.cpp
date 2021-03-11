@@ -20,7 +20,8 @@ TableFragment::~TableFragment()
 
 bool TableFragment::existDuplication(const std::deque<Node*>& path, const std::deque<int>& agents)
 {
-  std::set<int> set_agents(agents.begin(), agents.end());
+  std::set<int> set_agents;
+  for (auto itr = agents.begin(); itr != agents.end(); ++itr) set_agents.insert(*itr);
   for (auto c : t_from[path.front()->id]) {
     // different paths
     if (c->path != path) continue;
