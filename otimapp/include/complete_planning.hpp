@@ -37,8 +37,6 @@ private:
 
     HighLevelNode()
       : constraints({}), f(0), valid(true) {}
-    HighLevelNode(const Plan& p, Constraints c, int _f, bool _valid)
-      : paths(p), constraints(c), f(_f), valid(_valid) {}
   };
   using HighLevelNode_p = std::shared_ptr<HighLevelNode>;
   using HighLevelNodes = std::vector<HighLevelNode_p>;
@@ -51,6 +49,8 @@ private:
 
   // low-level search
   Path getConstrainedPath(const int id, HighLevelNode_p node);
+  Path getConstrainedPath(const int id, Constraints& _constraints);
+
 
   // get constraints
   Constraints getConstraints(const Plan& paths) const;

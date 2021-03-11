@@ -1,8 +1,8 @@
-Offline Time-Independent Planning
+otimapp
 ===
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-A simulator and visualizer of Offline Time-Independent Planning, used in a paper "Offline Time-Independent Multi-Agent Path Planning".
+A simulator and visualizer used in a paper "Offline Time-Independent Multi-Agent Path Planning".
 It is written in C++(17) with [CMake](https://cmake.org/) (≥v3.16) build.
 The repository uses [Google Test](https://github.com/google/googletest) and [the original library for 2D pathfinding](https://github.com/Kei18/grid-pathfinding) as git submodules.
 The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on macOS.
@@ -10,16 +10,16 @@ The visualizer uses [openFrameworks](https://openframeworks.cc) and works only o
 
 | platform | status (public) | status (dev) |
 | ---: | :--- |:--- |
-| macos-10.15 | ![test_macos](https://github.com/Kei18/offline-time-independent-planning/workflows/test_macos/badge.svg?branch=public) ![build_visualizer_macos](https://github.com/Kei18/offline-time-independent-planning/workflows/build_visualizer_macos/badge.svg?branch=public) | ![test_macos](https://github.com/Kei18/offline-time-independent-planning/workflows/test_macos/badge.svg?branch=dev) ![build_visualizer_macos](https://github.com/Kei18/offline-time-independent-planning/workflows/build_visualizer_macos/badge.svg?branch=dev) |
-| ubuntu-latest | ![test_ubuntu](https://github.com/Kei18/offline-time-independent-planning/workflows/test_ubuntu/badge.svg?branch=public) | ![test_ubuntu](https://github.com/Kei18/offline-time-independent-planning/workflows/test_ubuntu/badge.svg?branch=dev) |
+| macos-10.15 | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=public) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=public) | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=dev) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=dev) |
+| ubuntu-latest | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=public) | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=dev) |
 
 ## Demo
 
 ## Building
 
 ```sh
-git clone --recursive https://github.com/Kei18/offline-time-independent-planning.git
-cd offline-time-independent-planning
+git clone --recursive https://github.com/Kei18/otimapp.git
+cd otimapp
 mkdir build
 cd build
 cmake ..

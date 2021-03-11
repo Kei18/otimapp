@@ -72,7 +72,11 @@ void CompletePlanning::run()
     }
   }
 
-  if (solved) solution = n->paths;
+  if (solved) {
+    solution = n->paths;
+  } else if (Tree.empty()) {
+    info(" ", "unsolvable instance");
+  }
 }
 
 CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
@@ -109,21 +113,23 @@ CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
 
 CompletePlanning::HighLevelNode_p CompletePlanning::invoke(HighLevelNode_p n, Constraint_p c)
 {
-  // create new constraint
-  auto new_constraints = n->constraints;
-  new_constraints.push_back(c);
+  auto m = std::make_shared<HighLevelNode>();
+
+  // setup constraints
+  m->constraints = n->constraints;
+  m->constraints.push_back(c);
 
   // create new solution
-  auto paths = n->paths;
-  paths[c->agent] = getConstrainedPath(c->agent, n);
+  m->paths = n->paths;
+  m->paths[c->agent] = getConstrainedPath(c->agent, m);
 
   // failed to find a path
-  bool valid = !paths[c->agent].empty();
+  m->valid = !m->paths[c->agent].empty();
 
   // count head-on collisions
-  int f = countsSwapConlicts(c->agent, n->f, n->paths, paths[c->agent]);
+  m->f = countsSwapConlicts(c->agent, n->f, n->paths, m->paths[c->agent]);
 
-  return std::make_shared<HighLevelNode>(paths, new_constraints, f, valid);
+  return m;
 }
 
 Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
