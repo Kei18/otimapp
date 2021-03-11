@@ -9,6 +9,7 @@ Execution::Execution
 (Problem* _P, std::string _plan_file, int _seed, bool _verbose)
   : P(_P),
     plan_file(_plan_file),
+    exec_succeed(false),
     seed(_seed),
     MT(new std::mt19937(seed)),
     verbose(_verbose)
@@ -113,7 +114,7 @@ void Execution::run()
   emulation_time = getElapsedTime(t_start);
 
   // validation
-  if (!exec_result.empty()) {
+  if (!exec_result.empty() && exec_succeed) {
     if (!validateMAPFPlan(exec_result, P)) halt("invalid execution");
   }
 }
@@ -125,7 +126,8 @@ void Execution::printResult() const
 {
   std::cout << "finish emulation"
             << ", elapsed: " << emulation_time
-            << ", activation cnt: " << HIST.size();
+            << ", activation cnt: " << HIST.size()
+            << ", succeed: " << exec_succeed;
   if (!exec_result.empty()) {
     std::cout << ", soc: " << getSOC(exec_result)
               << ", makespan: " << getMakespan(exec_result);
@@ -157,6 +159,7 @@ void Execution::makeLog(const std::string& logfile) const
   log << "problem_name=" << problem_name << "\n";
   log << "plan=" << plan_file << "\n";
   makeLogSpecific(log);
+  log << "exec_succeed=" << exec_succeed << "\n";
   log << "exec_seed=" << seed << "\n";
   log << "emulation_time=" << emulation_time << "\n";
   log << "activate_cnts=" << HIST.size() << "\n";
@@ -220,6 +223,7 @@ void MAPF_DP_Execution::simulate()
   }
 
   // setup utilities
+  bool deadlock_detected = false;
   std::function<bool(MAPF_DP_Agent_p, MAPF_DP_Agents&)> isStable =
     [&] (MAPF_DP_Agent_p a, MAPF_DP_Agents& agents)
     {
@@ -236,7 +240,9 @@ void MAPF_DP_Execution::simulate()
         for (auto b : agents) {
           msg += std::to_string(b->id) + " at " + std::to_string(b->tail->id) + ", ";
         }
-        halt(msg);
+        info(msg);
+        deadlock_detected = true;
+        return false;
       }
       agents.push_back(A[a_j]);
       // when a_j is in extended
@@ -256,7 +262,7 @@ void MAPF_DP_Execution::simulate()
   int num_goal_agents = 0;
 
   info("  activate agents repeatedly");
-  while (true) {
+  while (!deadlock_detected) {
 
     // step 1, check transition
     for (int i = 0; i < P->getNum(); ++i) {
@@ -283,7 +289,10 @@ void MAPF_DP_Execution::simulate()
     exec_result.push_back(c);
 
     // check goal condition
-    if (num_goal_agents == P->getNum()) break;
+    if (num_goal_agents == P->getNum()) {
+      exec_succeed = true;
+      break;
+    }
 
     // step 2, activate unstable agents
     do {
@@ -298,15 +307,21 @@ void MAPF_DP_Execution::simulate()
         if (isStable(a, vec)) {
           unstable.erase(std::find(unstable.begin(), unstable.end(), a));
         }
+
+        // check deadlock
+        if (deadlock_detected) break;
       }
 
       // check again whether agents are in stable
       for (auto a : A) {
         MAPF_DP_Agents vec = { a };
         if (!isStable(a, vec)) unstable.push_back(a);
+
+        // check deadlock
+        if (deadlock_detected) break;
       }
 
-    } while (!unstable.empty());
+    } while (!unstable.empty() && !deadlock_detected);
   }
 }
 
@@ -338,26 +353,28 @@ void PrimitiveExecution::simulate()
   }
 
   // setup utilities
-  std::function<void(PrimitiveAgent_p, PrimitiveAgents&)> checkDeadlock =
+  std::function<bool(PrimitiveAgent_p, PrimitiveAgents&)> checkNoDeadlock =
     [&] (PrimitiveAgent_p a, PrimitiveAgents& agents)
     {
-      if (a->isFinished()) return;
+      // i.e., agents cannot move
+      if (a->isFinished()) return false;
       // next location
       auto v_next = a->getNextNode();
       // agent who uses v_next
       auto a_j = occupancy[v_next->id];
       // no one uses v_next
-      if (a_j == Agent::NIL) return;
+      if (a_j == Agent::NIL) return true;
       // check deadlock
       if (inArray(A[a_j], agents)) {
         std::string msg = "detect deadlock: ";
         for (auto b : agents) {
           msg += std::to_string(b->id) + " at " + std::to_string(b->tail->id) + ", ";
         }
-        halt(msg);
+        info(msg);
+        return false;
       }
       agents.push_back(A[a_j]);
-      checkDeadlock(A[a_j], agents);
+      return checkNoDeadlock(A[a_j], agents);
     };
 
   auto activate = [&] (PrimitiveAgent_p a)
@@ -373,14 +390,17 @@ void PrimitiveExecution::simulate()
     if (a->isFinished()) continue;
 
     PrimitiveAgents vec = { a };
-    checkDeadlock(a, vec);
+    if (!checkNoDeadlock(a, vec)) break;
 
     activate(a);
     if (a->isFinished()) {
       ++num_goal_agents;
 
       // finish
-      if (num_goal_agents >= P->getNum()) break;
+      if (num_goal_agents >= P->getNum()) {
+        exec_succeed = true;
+        break;
+      }
     }
   }
 }

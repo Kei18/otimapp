@@ -13,6 +13,7 @@ protected:
   const std::string plan_file;   // file of planning result
   bool solved;                   // check validity of the plan
   Plan plan;                     // planning
+  bool exec_succeed;             // whether to succeed the execution
   const int seed;                // seed
   std::mt19937* MT;              // seed
   const bool verbose;            // print info or not

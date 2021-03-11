@@ -10,6 +10,7 @@ MinimumSolver::MinimumSolver(Problem* _P)
     MT(_P->getMT()),
     max_comp_time(P->getMaxCompTime()),
     solved(false),
+    unsolvable(false),
     comp_time(0)
 {
 }
@@ -118,6 +119,7 @@ void Solver::makeLogBasicInfo(std::ofstream& log)
   log << "seed=" << P->getSeed() << "\n";
   log << "solver=" << solver_name << "\n";
   log << "solved=" << solved << "\n";
+  log << "unsolvable=" << unsolvable << "\n";
   log << "comp_time=" << getCompTime() << "\n";
 }
 

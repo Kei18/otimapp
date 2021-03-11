@@ -21,6 +21,7 @@ protected:
   const int max_comp_time;       // time limit for computation, ms
   Plan solution;                 // solution
   bool solved;                   // success -> true, failed -> false (default)
+  bool unsolvable;               // default: false, true -> instance is unsolvable
 
 private:
   int comp_time;             // computation time

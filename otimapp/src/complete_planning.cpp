@@ -76,6 +76,7 @@ void CompletePlanning::run()
     solution = n->paths;
   } else if (Tree.empty()) {
     info(" ", "unsolvable instance");
+    unsolvable = true;
   }
 }
 

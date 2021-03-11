@@ -7,9 +7,10 @@ agents_list=$2
 solver=$3
 scen_start=$4
 scen_end=$5
-ub_delay_probs=$6
-exec_repetation=$7
-force=$8
+time_limit=$6
+exec_option=$7
+exec_repetation=$8
+force=$9
 
 PROJECT_DIR=`dirname $0`/..
 map_trimed=${map%.map}
@@ -58,8 +59,10 @@ do
         cmd="$PROJECT_DIR/build/app \
                     -i $PROJECT_DIR/instances/$scen_file \
                     -o $OUTPUT_DIR/$plan_file \
-                    -s $solver"
+                    -s $solver \
+                    -T $time_limit"
         eval $cmd
+
         # execution
         exec_seed=0
         while [ $exec_seed -lt `expr $exec_repetation` ]
@@ -68,14 +71,13 @@ do
             cmd_exec="$PROJECT_DIR/build/exec \
                           -i $PROJECT_DIR/instances/$scen_file \
                           -p $OUTPUT_DIR/$plan_file \
-                          -o $OUTPUT_DIR/$exec_file
-                          -s ${exec_seed}
-                          -u ${ub_delay_probs}"
+                          -o $OUTPUT_DIR/$exec_file \
+                          -s ${exec_seed} \
+                          ${exec_option}"
             eval $cmd_exec
             exec_seed=`expr $exec_seed + 1`
         done
         scen=`expr $scen + 1`
-        echo
     done
 done
 
@@ -90,7 +92,7 @@ STATUS_FILE=$OUTPUT_DIR/status.txt
     echo solver:$solver
     echo scen_start:$scen_start
     echo scen_end:$scen_end
-    echo ub_delay_probs:$ub_delay_probs
+    echo exec_option:$exec_option
     echo exec_reperation:$exec_repetation
 } > $STATUS_FILE
 
