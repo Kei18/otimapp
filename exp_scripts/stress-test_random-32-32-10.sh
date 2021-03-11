@@ -20,7 +20,7 @@ solvers=(
 
 for solver in "${solvers[@]}"
 do
-    sh `dirname $0`/run.sh \
+    bash `dirname $0`/run.sh \
        $map \
        "$agents_list" \
        "$solver" \

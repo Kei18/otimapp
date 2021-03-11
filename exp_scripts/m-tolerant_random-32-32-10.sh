@@ -12,7 +12,7 @@ exec_option="-P PRIMITIVE"
 exec_repetation=100
 solver="PP -m 100000 -f 4"
 
-sh `dirname $0`/run.sh \
+bash `dirname $0`/run.sh \
    $map \
    "$agents_list" \
    "$solver" \
