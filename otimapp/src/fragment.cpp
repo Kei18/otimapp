@@ -27,7 +27,8 @@ bool TableFragment::existDuplication(const std::deque<Node*>& path, const std::d
     if (c->path != path) continue;
 
     // different agents
-    std::set<int> c_agents = std::set(c->agents.begin(), c->agents.end());
+    std::set<int> c_agents;
+    for (auto itr = c->agents.begin(); itr != c->agents.end(); ++itr) c_agents.insert(*itr);
     if (c_agents != set_agents) continue;
 
     // duplication exists
