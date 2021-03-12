@@ -8,24 +8,41 @@ force=0
 map="random-32-32-10.map"
 agents_list="30 50 70 90"
 time_limit=5000
-exec_option="-P PRIMITIVE"
+exec_option="-P PRIMITIVE -l"
 exec_repetation=100
-solver="PP -m 100000 -f 4"
 
-bash `dirname $0`/run.sh \
-   $map \
-   "$agents_list" \
-   "$solver" \
-   $scen_start \
-   $scen_end \
-   $time_limit \
-   "$exec_option" \
-   $exec_repetation \
-   $force
+solvers=(
+    "PP -m 100000 -f 2"
+    "PP -m 100000 -f 4"
+    "PP -m 100000 -f 6"
+    "PP -m 100000 -f 8"
+    "PP -m 100000"
+)
+
+for solver in "${solvers[@]}"
+do
+    bash `dirname $0`/run.sh \
+         $map \
+         "$agents_list" \
+         "$solver" \
+         $scen_start \
+         $scen_end \
+         $time_limit \
+         "$exec_option" \
+         $exec_repetation \
+         $force
+done
 
 # send message
+str_solvers="solvers="
+for solver in "${solvers[@]}"
+do
+    str_solvers=$str_solvers"\n"$solver
+done
+str_solvers=${str_solvers//\"/\\\"}
+
 MESSAGE="*-----------------------------------
-fin experiment\nm-tolerant\ndate=${start_date}\nmap=${map}\nagents=${agents_list}\n${solver}
+fin experiment\nm-tolerant\ndate=${start_date}\nmap=${map}\nagents=${agents_list}\n\n${str_solvers}
 -----------------------------------*"
 
 bash `dirname $0`/slack_notification.sh "$MESSAGE"

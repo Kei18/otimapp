@@ -6,13 +6,14 @@ const std::string MAPF_DP_Execution::PROBLEM_NAME = "MAPF_DP";
 const std::string PrimitiveExecution::PROBLEM_NAME = "PRIMITIVE";
 
 Execution::Execution
-(Problem* _P, std::string _plan_file, int _seed, bool _verbose)
+(Problem* _P, std::string _plan_file, int _seed, bool _verbose, bool _log_short)
   : P(_P),
     plan_file(_plan_file),
     exec_succeed(false),
     seed(_seed),
     MT(new std::mt19937(seed)),
-    verbose(_verbose)
+    verbose(_verbose),
+    log_short(_log_short)
 {
   // read plan results
   solved = getSolved();
@@ -165,27 +166,29 @@ void Execution::makeLog(const std::string& logfile) const
   log << "activate_cnts=" << HIST.size() << "\n";
   log << "makespan=" << makespan << "\n";
   log << "soc=" << soc << "\n";
-  log << "result=\n";
-  if (solved && !exec_result.empty()) {
-    for (int t = 0; t <= makespan; ++t) {
-      log << t << ":";
-      auto c = exec_result[t];
-      for (auto v : c) {
-        log << "(" << v->pos.x << "," << v->pos.y << "),";
+  if (!log_short) {
+    log << "result=\n";
+    if (solved && !exec_result.empty()) {
+      for (int t = 0; t <= makespan; ++t) {
+        log << t << ":";
+        auto c = exec_result[t];
+        for (auto v : c) {
+          log << "(" << v->pos.x << "," << v->pos.y << "),";
+        }
+        log << "\n";
       }
-      log << "\n";
     }
-  }
-  log << "execution(id,t,mode,head,tail)=\n";
-  for (int i = 0; i < (int)HIST.size(); ++i) {
-    auto s = HIST[i];
-    auto m = std::get<2>(s);
-    log << i+1 << ":("
-        << std::get<0>(s) << ","
-        << std::get<1>(s) << ","
-        << (int)m << ","
-        << ((m == Agent::EXTENDED) ? std::get<3>(s)->id : -1)<< ","
-        << std::get<4>(s)->id << ")\n";
+    log << "execution(id,t,mode,head,tail)=\n";
+    for (int i = 0; i < (int)HIST.size(); ++i) {
+      auto s = HIST[i];
+      auto m = std::get<2>(s);
+      log << i+1 << ":("
+          << std::get<0>(s) << ","
+          << std::get<1>(s) << ","
+          << (int)m << ","
+          << ((m == Agent::EXTENDED) ? std::get<3>(s)->id : -1)<< ","
+          << std::get<4>(s)->id << ")\n";
+    }
   }
   log.close();
 }
@@ -193,8 +196,8 @@ void Execution::makeLog(const std::string& logfile) const
 // -------------------------------
 // main
 MAPF_DP_Execution::MAPF_DP_Execution
-(Problem* _P, std::string _plan_file, int _seed, float _ub_delay_prob, bool _verbose)
-  : Execution(_P, _plan_file, _seed, _verbose),
+(Problem* _P, std::string _plan_file, int _seed, float _ub_delay_prob, bool _verbose, bool _log_short)
+  : Execution(_P, _plan_file, _seed, _verbose, _log_short),
     ub_delay_prob(_ub_delay_prob)
 {
   problem_name = PROBLEM_NAME;
@@ -334,8 +337,8 @@ void MAPF_DP_Execution::makeLogSpecific(std::ofstream& log) const
 }
 
 PrimitiveExecution::PrimitiveExecution
-(Problem* _P, std::string _plan_file, int _seed, bool _verbose)
-  : Execution(_P, _plan_file, _seed, _verbose)
+(Problem* _P, std::string _plan_file, int _seed, bool _verbose, bool _log_short)
+  : Execution(_P, _plan_file, _seed, _verbose, _log_short)
 {
   problem_name = PROBLEM_NAME;
 }

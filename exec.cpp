@@ -16,6 +16,7 @@ int main(int argc, char* argv[])
   int seed = DEFAULT_SEED;
   float ub_delay_prob = DEFAULT_UB_DELAY_PROB;
   bool verbose = false;
+  bool log_short = false;
 
   enum PROBLEM_TYPE { P_MAPF_DP, P_PRIMITIVE };
   PROBLEM_TYPE problem_type = PROBLEM_TYPE::P_MAPF_DP;
@@ -29,13 +30,14 @@ int main(int argc, char* argv[])
       {"verbose", no_argument, 0, 'v'},
       {"help", no_argument, 0, 'h'},
       {"problem-type", required_argument, 0, 'P'},
+      {"log-short", required_argument, 0, 'l'},
       {0, 0, 0, 0},
   };
 
   // command line args
   int opt, longindex;
   opterr = 0;  // ignore getopt error
-  while ((opt = getopt_long(argc, argv, "i:p:o:s:u:vhP:", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(argc, argv, "i:p:o:s:u:vhP:l", longopts, &longindex)) != -1) {
     switch (opt) {
       case 'i':
         instance_file = std::string(optarg);
@@ -54,6 +56,9 @@ int main(int argc, char* argv[])
         break;
       case 'v':
         verbose = true;
+        break;
+      case 'l':
+        log_short = true;
         break;
       case 'P':
         if (std::string(optarg) == "PRIMITIVE") problem_type = PROBLEM_TYPE::P_PRIMITIVE;
@@ -79,9 +84,9 @@ int main(int argc, char* argv[])
   // emulate execution
   std::unique_ptr<Execution> exec;
   if (problem_type == PROBLEM_TYPE::P_PRIMITIVE) {
-    exec = std::make_unique<PrimitiveExecution>(&P, plan_file, seed, verbose);
+    exec = std::make_unique<PrimitiveExecution>(&P, plan_file, seed, verbose, log_short);
   } else {
-    exec = std::make_unique<MAPF_DP_Execution>(&P, plan_file, seed, ub_delay_prob, verbose);
+    exec = std::make_unique<MAPF_DP_Execution>(&P, plan_file, seed, ub_delay_prob, verbose, log_short);
   }
   exec->run();
   exec->printResult();
@@ -103,6 +108,7 @@ void printHelp()
             << "  -s --seed                     seed\n"
             << "  -u --ub-delay-prob            upper bound of delay probabilities\n"
             << "  -v --verbose                  print additional info\n"
+            << "  -l --log-short                simple log, unable to visualize\n"
             << "  -P --problem-type             { MAPF_DP, PRIMITIVE }\n"
             << "  -h --help                     help"
             << std::endl;

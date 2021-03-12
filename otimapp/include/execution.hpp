@@ -17,6 +17,7 @@ protected:
   const int seed;                // seed
   std::mt19937* MT;              // seed
   const bool verbose;            // print info or not
+  const bool log_short;          // make log short
 
   Configs exec_result;             // execution result
   std::vector<MAPF_DP_Agent::State> HIST;  // execution history
@@ -45,7 +46,8 @@ public:
   Execution(Problem* _P,
             std::string _plan_file,
             int _seed = DEFAULT_SEED,
-            bool _verbose = false);
+            bool _verbose = false,
+            bool _log_short = false);
   virtual ~Execution();
 
   // -------------------------------
@@ -82,7 +84,8 @@ public:
                     std::string _plan_file,
                     int _seed = DEFAULT_SEED,
                     float _ub_delay_prob = DEFAULT_UB_DELAY_PROB,
-                    bool _verbose = false);
+                    bool _verbose = false,
+                    bool _log_short = false);
   ~MAPF_DP_Execution() {}
 };
 
@@ -100,6 +103,7 @@ public:
   PrimitiveExecution(Problem* _P,
                      std::string _plan_file,
                      int _seed = DEFAULT_SEED,
-                     bool _verbose = false);
+                     bool _verbose = false,
+                     bool _log_short = false);
   ~PrimitiveExecution() {}
 };

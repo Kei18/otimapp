@@ -14,8 +14,14 @@ exec_repetation=0
 solvers=(
     "PP -m 100000"
     "CP"
+    "PP -m 100000 -f 2"
+    "CP -f 2"
     "PP -m 100000 -f 4"
     "CP -f 4"
+    "PP -m 100000 -f 6"
+    "CP -f 6"
+    "PP -m 100000 -f 8"
+    "CP -f 8"
 )
 
 for solver in "${solvers[@]}"
