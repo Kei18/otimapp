@@ -3,11 +3,11 @@ source `dirname $0`/util.sh
 start_date=`getDate`
 
 scen_start=1
-scen_end=100
-force=0
-map="random-32-32-10.map"
-agents_list="30 50 70 90"
-time_limit=5000
+scen_end=1
+force=1
+map="random-64-64-10.map"
+agents_list="50 100 150 200"
+time_limit=10000
 exec_option="_"
 exec_repetation=0
 
