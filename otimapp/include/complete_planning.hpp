@@ -1,5 +1,5 @@
 /*
- * Implementation of CP
+ * Implementation of CP: partially complete planning
  */
 
 #pragma once
