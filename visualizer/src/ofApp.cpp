@@ -29,7 +29,7 @@ ofApp::ofApp(Result* _P): P(_P)
 
 ofApp::~ofApp()
 {
-  delete P;
+  delete P;  // memory clear
 }
 
 void ofApp::setup()
