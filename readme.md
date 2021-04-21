@@ -5,7 +5,7 @@ otimapp
 A simulator and visualizer used in a paper "Offline Time-Independent Multi-Agent Path Planning" (OTIMAPP).
 It is written in C++(17) with [CMake](https://cmake.org/) (≥v3.16) build.
 The repository uses [Google Test](https://github.com/google/googletest) and [the original library for 2D pathfinding](https://github.com/Kei18/grid-pathfinding) as git submodules.
-The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on macOS.
+The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on MacOS.
 
 
 | platform | status (public) | status (dev) |
@@ -13,10 +13,22 @@ The visualizer uses [openFrameworks](https://openframeworks.cc) and works only o
 | macos-10.15 | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=public) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=public) | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=dev) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=dev) |
 | ubuntu-latest | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=public) | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=dev) |
 
+
+Please cite the following paper if you use the code in your published research:
+```
+@article{okumura2021offline,
+  title={Offline Time-Independent Multi-Agent Path Planning},
+  author={Okumura, Keisuke and Bonnet, Fran{\c{c}}ois and Tamura, Yasumasa and D{\'e}fago, Xavier},
+  journal={arXiv preprint arXiv:xxxxxx},
+  year={2021}
+}
+```
+
+
 ## Demo
 ![100 agents in arena](./material/sample.gif)
 
-4-tolerant solution planned by prioritized planning, execution on MAPF-DP
+4-tolerant solution planned by PP, execution on MAPF-DP
 
 ## Building
 
@@ -31,13 +43,13 @@ make
 
 ## Usage
 ### Planning
-by Prioritized Planning, for 4-tolerant solutions
+planed by PP, 4-tolerant solutions
 ```sh
 ./app -i ../instances/sample.txt -s PrioritizedPlanning -o ./plan.txt -v -f 4
 ```
 
 ### Execution
-MAPF-DP, with upper bound of delay probabilities is 0.5
+MAPF-DP, upper bound of delay probabilities is 0.5
 ```sh
 ./exec -i ../instances/sample.txt -p ./plan.txt -o ./exec.txt -v -u 0.5
 ```
@@ -128,6 +140,7 @@ cd build
 
 You can manipulate it via your keyboard. See printed info.
 
+
 ## Experimental Environment
 [![v1.0](https://img.shields.io/badge/tag-v1.0-blue.svg?style=flat)](https://github.com/Kei18/otimapp/releases/tag/v1.0)
 
@@ -143,5 +156,3 @@ This software is released under the MIT License, see [LICENSE.txt](LICENCE.txt).
 
 ## Author
 [Keisuke Okumura](https://kei18.github.io) is a Ph.D. student at the Tokyo Institute of Technology, interested in controlling multiple moving agents.
-
-## Reference
