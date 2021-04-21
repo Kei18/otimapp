@@ -1,23 +1,23 @@
 #include "../include/agent.hpp"
 
 Agent::Agent(int _id, const Path& _path)
-  : id(_id),
-    t(0),
-    mode(Mode::CONTRACTED),
-    head(nullptr),
-    tail(_path[0]),
-    path(_path)
+    : id(_id),
+      t(0),
+      mode(Mode::CONTRACTED),
+      head(nullptr),
+      tail(_path[0]),
+      path(_path)
 {
 }
 
 Node* Agent::getNextNode() const
 {
-  return (t < (int)path.size()-1) ? path[t+1] : nullptr;
+  return (t < (int)path.size() - 1) ? path[t + 1] : nullptr;
 }
 
 bool Agent::isFinished() const
 {
-  return mode == Mode::CONTRACTED && t == (int)path.size()-1;
+  return mode == Mode::CONTRACTED && t == (int)path.size() - 1;
 }
 
 Agent::State Agent::getState() const
@@ -25,10 +25,7 @@ Agent::State Agent::getState() const
   return std::make_tuple(id, t, mode, head, tail);
 }
 
-MAPF_DP_Agent::MAPF_DP_Agent(int _id, const Path& _path)
-  : Agent(_id, _path)
-{
-}
+MAPF_DP_Agent::MAPF_DP_Agent(int _id, const Path& _path) : Agent(_id, _path) {}
 
 void MAPF_DP_Agent::activate(std::vector<int>& occupancy)
 {
@@ -54,8 +51,7 @@ void MAPF_DP_Agent::activate(std::vector<int>& occupancy)
   }
 }
 
-PrimitiveAgent::PrimitiveAgent(int _id, const Path& _path)
-  : Agent(_id, _path)
+PrimitiveAgent::PrimitiveAgent(int _id, const Path& _path) : Agent(_id, _path)
 {
 }
 

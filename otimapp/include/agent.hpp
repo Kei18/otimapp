@@ -1,6 +1,6 @@
 #pragma once
-#include <memory>
 #include <graph.hpp>
+#include <memory>
 
 struct MAPF_DP_Agent;
 using MAPF_DP_Agent_p = std::shared_ptr<MAPF_DP_Agent>;
@@ -9,7 +9,6 @@ using MAPF_DP_Agents = std::vector<MAPF_DP_Agent_p>;
 struct PrimitiveAgent;
 using PrimitiveAgent_p = std::shared_ptr<PrimitiveAgent>;
 using PrimitiveAgents = std::vector<PrimitiveAgent_p>;
-
 
 struct Agent {
   enum Mode { CONTRACTED, EXTENDED, REQUESTING };
@@ -37,6 +36,7 @@ struct Agent {
   State getState() const;
 };
 
+// agent for MAPF-DP
 struct MAPF_DP_Agent : public Agent {
   MAPF_DP_Agent(int _id, const Path& _path);
   ~MAPF_DP_Agent() {}
@@ -44,6 +44,7 @@ struct MAPF_DP_Agent : public Agent {
   void activate(std::vector<int>& occupancy);
 };
 
+// pure agent
 struct PrimitiveAgent : public Agent {
   PrimitiveAgent(int _id, const Path& _path);
   ~PrimitiveAgent() {}

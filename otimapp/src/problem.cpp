@@ -6,11 +6,11 @@
 #include "../include/util.hpp"
 
 Problem::Problem(const std::string& _instance)
-  : instance(_instance),
-    G(nullptr),
-    seed(DEFAULT_SEED),
-    MT(nullptr),
-    max_comp_time(DEFAULT_MAX_COMP_TIME)
+    : instance(_instance),
+      G(nullptr),
+      seed(DEFAULT_SEED),
+      MT(nullptr),
+      max_comp_time(DEFAULT_MAX_COMP_TIME)
 {
   // read instance file
   std::ifstream file(instance);

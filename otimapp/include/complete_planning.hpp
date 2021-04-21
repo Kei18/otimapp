@@ -1,11 +1,11 @@
 /*
- * Implementation of Prioritized Planning
+ * Implementation of CP
  */
 
 #pragma once
-#include "solver.hpp"
 #include <memory>
 
+#include "solver.hpp"
 
 class CompletePlanning : public Solver
 {
@@ -35,8 +35,7 @@ private:
     int f;                    // #(head-on collisions)
     bool valid;               // false -> no path is found
 
-    HighLevelNode()
-      : constraints({}), f(0), valid(true) {}
+    HighLevelNode() : constraints({}), f(0), valid(true) {}
   };
   using HighLevelNode_p = std::shared_ptr<HighLevelNode>;
   using HighLevelNodes = std::vector<HighLevelNode_p>;
@@ -50,7 +49,6 @@ private:
   // low-level search
   Path getConstrainedPath(const int id, HighLevelNode_p node);
   Path getConstrainedPath(const int id, Constraints& _constraints);
-
 
   // get constraints
   Constraints getConstraints(const Plan& paths) const;

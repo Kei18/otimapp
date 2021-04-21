@@ -1,18 +1,18 @@
 #include <getopt.h>
-#include <default_params.hpp>
-#include <iostream>
-#include <problem.hpp>
-#include <prioritized_planning.hpp>
+
 #include <complete_planning.hpp>
+#include <default_params.hpp>
 #include <fstream>
+#include <iostream>
+#include <prioritized_planning.hpp>
+#include <problem.hpp>
 #include <random>
-#include <vector>
 #include <regex>
+#include <vector>
 
 void printHelp();
 std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
                                   bool verbose, int argc, char* argv[]);
-
 
 int main(int argc, char* argv[])
 {
@@ -110,7 +110,8 @@ std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
     solver = std::make_unique<CompletePlanning>(P);
   } else {
     std::cout << "warn@app: "
-              << "unknown solver name, " + solver_name + ", continue by PrioritizedPlanning"
+              << "unknown solver name, " + solver_name +
+                     ", continue by PrioritizedPlanning"
               << std::endl;
     solver = std::make_unique<PrioritizedPlanning>(P);
   }

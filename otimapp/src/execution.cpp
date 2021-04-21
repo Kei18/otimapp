@@ -1,29 +1,27 @@
 #include "../include/execution.hpp"
-#include <regex>
+
 #include <functional>
+#include <regex>
 
 const std::string MAPF_DP_Execution::PROBLEM_NAME = "MAPF_DP";
 const std::string PrimitiveExecution::PROBLEM_NAME = "PRIMITIVE";
 
-Execution::Execution
-(Problem* _P, std::string _plan_file, int _seed, bool _verbose, bool _log_short)
-  : P(_P),
-    plan_file(_plan_file),
-    exec_succeed(false),
-    seed(_seed),
-    MT(new std::mt19937(seed)),
-    verbose(_verbose),
-    log_short(_log_short)
+Execution::Execution(Problem* _P, std::string _plan_file, int _seed,
+                     bool _verbose, bool _log_short)
+    : P(_P),
+      plan_file(_plan_file),
+      exec_succeed(false),
+      seed(_seed),
+      MT(new std::mt19937(seed)),
+      verbose(_verbose),
+      log_short(_log_short)
 {
   // read plan results
   solved = getSolved();
   plan = getPlan();
 }
 
-Execution::~Execution()
-{
-  delete MT;
-}
+Execution::~Execution() { delete MT; }
 
 // -------------------------------
 // utilities for debug
@@ -182,12 +180,9 @@ void Execution::makeLog(const std::string& logfile) const
     for (int i = 0; i < (int)HIST.size(); ++i) {
       auto s = HIST[i];
       auto m = std::get<2>(s);
-      log << i+1 << ":("
-          << std::get<0>(s) << ","
-          << std::get<1>(s) << ","
-          << (int)m << ","
-          << ((m == Agent::EXTENDED) ? std::get<3>(s)->id : -1)<< ","
-          << std::get<4>(s)->id << ")\n";
+      log << i + 1 << ":(" << std::get<0>(s) << "," << std::get<1>(s) << ","
+          << (int)m << "," << ((m == Agent::EXTENDED) ? std::get<3>(s)->id : -1)
+          << "," << std::get<4>(s)->id << ")\n";
     }
   }
   log.close();
@@ -195,10 +190,11 @@ void Execution::makeLog(const std::string& logfile) const
 
 // -------------------------------
 // main
-MAPF_DP_Execution::MAPF_DP_Execution
-(Problem* _P, std::string _plan_file, int _seed, float _ub_delay_prob, bool _verbose, bool _log_short)
-  : Execution(_P, _plan_file, _seed, _verbose, _log_short),
-    ub_delay_prob(_ub_delay_prob)
+MAPF_DP_Execution::MAPF_DP_Execution(Problem* _P, std::string _plan_file,
+                                     int _seed, float _ub_delay_prob,
+                                     bool _verbose, bool _log_short)
+    : Execution(_P, _plan_file, _seed, _verbose, _log_short),
+      ub_delay_prob(_ub_delay_prob)
 {
   problem_name = PROBLEM_NAME;
 
@@ -228,34 +224,33 @@ void MAPF_DP_Execution::simulate()
   // setup utilities
   bool deadlock_detected = false;
   std::function<bool(MAPF_DP_Agent_p, MAPF_DP_Agents&)> isStable =
-    [&] (MAPF_DP_Agent_p a, MAPF_DP_Agents& agents)
-    {
-      if (a->mode == MAPF_DP_Agent::EXTENDED || a->isFinished()) return true;
-      // next location
-      auto v_next = a->getNextNode();
-      // agent who uses v_next
-      auto a_j = occupancy[v_next->id];
-      // no one uses v_next
-      if (a_j == MAPF_DP_Agent::NIL) return false;
-      // check deadlock
-      if (inArray(A[a_j], agents)) {
-        std::string msg = "detect deadlock: ";
-        for (auto b : agents) {
-          msg += std::to_string(b->id) + " at " + std::to_string(b->tail->id) + ", ";
+      [&](MAPF_DP_Agent_p a, MAPF_DP_Agents& agents) {
+        if (a->mode == MAPF_DP_Agent::EXTENDED || a->isFinished()) return true;
+        // next location
+        auto v_next = a->getNextNode();
+        // agent who uses v_next
+        auto a_j = occupancy[v_next->id];
+        // no one uses v_next
+        if (a_j == MAPF_DP_Agent::NIL) return false;
+        // check deadlock
+        if (inArray(A[a_j], agents)) {
+          std::string msg = "detect deadlock: ";
+          for (auto b : agents) {
+            msg += std::to_string(b->id) + " at " +
+                   std::to_string(b->tail->id) + ", ";
+          }
+          info(msg);
+          deadlock_detected = true;
+          return false;
         }
-        info(msg);
-        deadlock_detected = true;
+        agents.push_back(A[a_j]);
+        // when a_j is in extended
+        if (isStable(A[a_j], agents)) return true;
+        // when a_j is in contracted
         return false;
-      }
-      agents.push_back(A[a_j]);
-      // when a_j is in extended
-      if (isStable(A[a_j], agents)) return true;
-      // when a_j is in contracted
-      return false;
-    };
+      };
 
-  auto activate = [&] (MAPF_DP_Agent_p a)
-  {
+  auto activate = [&](MAPF_DP_Agent_p a) {
     a->activate(occupancy);
     HIST.push_back(a->getState());  // update record
   };
@@ -266,7 +261,6 @@ void MAPF_DP_Execution::simulate()
 
   info("  activate agents repeatedly");
   while (!deadlock_detected) {
-
     // step 1, check transition
     for (int i = 0; i < P->getNum(); ++i) {
       auto a = A[i];
@@ -306,7 +300,7 @@ void MAPF_DP_Execution::simulate()
         activate(a);
 
         // remove from unstable when agent is stable
-        MAPF_DP_Agents vec = { a };
+        MAPF_DP_Agents vec = {a};
         if (isStable(a, vec)) {
           unstable.erase(std::find(unstable.begin(), unstable.end(), a));
         }
@@ -317,7 +311,7 @@ void MAPF_DP_Execution::simulate()
 
       // check again whether agents are in stable
       for (auto a : A) {
-        MAPF_DP_Agents vec = { a };
+        MAPF_DP_Agents vec = {a};
         if (!isStable(a, vec)) unstable.push_back(a);
 
         // check deadlock
@@ -336,9 +330,10 @@ void MAPF_DP_Execution::makeLogSpecific(std::ofstream& log) const
   log << "\n";
 }
 
-PrimitiveExecution::PrimitiveExecution
-(Problem* _P, std::string _plan_file, int _seed, bool _verbose, bool _log_short)
-  : Execution(_P, _plan_file, _seed, _verbose, _log_short)
+PrimitiveExecution::PrimitiveExecution(Problem* _P, std::string _plan_file,
+                                       int _seed, bool _verbose,
+                                       bool _log_short)
+    : Execution(_P, _plan_file, _seed, _verbose, _log_short)
 {
   problem_name = PROBLEM_NAME;
 }
@@ -357,31 +352,30 @@ void PrimitiveExecution::simulate()
 
   // setup utilities
   std::function<bool(PrimitiveAgent_p, PrimitiveAgents&)> checkNoDeadlock =
-    [&] (PrimitiveAgent_p a, PrimitiveAgents& agents)
-    {
-      // i.e., agents cannot move
-      if (a->isFinished()) return false;
-      // next location
-      auto v_next = a->getNextNode();
-      // agent who uses v_next
-      auto a_j = occupancy[v_next->id];
-      // no one uses v_next
-      if (a_j == Agent::NIL) return true;
-      // check deadlock
-      if (inArray(A[a_j], agents)) {
-        std::string msg = "detect deadlock: ";
-        for (auto b : agents) {
-          msg += std::to_string(b->id) + " at " + std::to_string(b->tail->id) + ", ";
+      [&](PrimitiveAgent_p a, PrimitiveAgents& agents) {
+        // i.e., agents cannot move
+        if (a->isFinished()) return false;
+        // next location
+        auto v_next = a->getNextNode();
+        // agent who uses v_next
+        auto a_j = occupancy[v_next->id];
+        // no one uses v_next
+        if (a_j == Agent::NIL) return true;
+        // check deadlock
+        if (inArray(A[a_j], agents)) {
+          std::string msg = "detect deadlock: ";
+          for (auto b : agents) {
+            msg += std::to_string(b->id) + " at " +
+                   std::to_string(b->tail->id) + ", ";
+          }
+          info(msg);
+          return false;
         }
-        info(msg);
-        return false;
-      }
-      agents.push_back(A[a_j]);
-      return checkNoDeadlock(A[a_j], agents);
-    };
+        agents.push_back(A[a_j]);
+        return checkNoDeadlock(A[a_j], agents);
+      };
 
-  auto activate = [&] (PrimitiveAgent_p a)
-  {
+  auto activate = [&](PrimitiveAgent_p a) {
     a->activate(occupancy);
     HIST.push_back(a->getState());  // update record
   };
@@ -392,7 +386,7 @@ void PrimitiveExecution::simulate()
     auto a = randomChoose(A, MT);
     if (a->isFinished()) continue;
 
-    PrimitiveAgents vec = { a };
+    PrimitiveAgents vec = {a};
     if (!checkNoDeadlock(a, vec)) break;
 
     activate(a);

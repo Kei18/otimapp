@@ -4,14 +4,14 @@
 #include <iomanip>
 
 MinimumSolver::MinimumSolver(Problem* _P)
-  : solver_name(""),
-    P(_P),
-    G(_P->getG()),
-    MT(_P->getMT()),
-    max_comp_time(P->getMaxCompTime()),
-    solved(false),
-    unsolvable(false),
-    comp_time(0)
+    : solver_name(""),
+      P(_P),
+      G(_P->getG()),
+      MT(_P->getMT()),
+      max_comp_time(P->getMaxCompTime()),
+      solved(false),
+      unsolvable(false),
+      comp_time(0)
 {
 }
 
@@ -22,33 +22,29 @@ void MinimumSolver::solve()
   end();
 }
 
-void MinimumSolver::start()
-{
-  t_start = Time::now();
-}
+void MinimumSolver::start() { t_start = Time::now(); }
 
-void MinimumSolver::end()
-{
-  comp_time = getSolverElapsedTime();
-}
+void MinimumSolver::end() { comp_time = getSolverElapsedTime(); }
 
-int MinimumSolver::getSolverElapsedTime() const { return getElapsedTime(t_start); }
+int MinimumSolver::getSolverElapsedTime() const
+{
+  return getElapsedTime(t_start);
+}
 
 // -----------------------------------------------
 // base class with utilities
 // -----------------------------------------------
 
 Solver::Solver(Problem* _P)
-  : MinimumSolver(_P),
-    verbose(false),
-    distance_table(P->getNum(), std::vector<int>(G->getNodesSize(), G->getNodesSize())),
-    table_goals(G->getNodesSize(), false)
+    : MinimumSolver(_P),
+      verbose(false),
+      distance_table(P->getNum(),
+                     std::vector<int>(G->getNodesSize(), G->getNodesSize())),
+      table_goals(G->getNodesSize(), false)
 {
 }
 
-Solver::~Solver()
-{
-}
+Solver::~Solver() {}
 
 // -------------------------------
 // main
@@ -138,7 +134,7 @@ void Solver::makeLogSolution(std::ofstream& log)
   log << "\n";
   log << "sum-of-path-length:"
       << std::accumulate(solution.begin(), solution.end(), 0,
-                         [] (int acc, Path p) { return acc + p.size()-1; })
+                         [](int acc, Path p) { return acc + p.size() - 1; })
       << "\n";
   log << "plan=\n";
   for (int i = 0; i < (int)solution.size(); ++i) {
@@ -155,13 +151,12 @@ void Solver::printResult()
 {
   int cost = 0;
   if (solved)
-    for (auto p : solution) cost += p.size()-1;
+    for (auto p : solution) cost += p.size() - 1;
 
-  std::cout << "solved=" << solved
-            << ", solver=" << std::right << std::setw(8) << solver_name
-            << ", comp_time(ms)=" << std::right << std::setw(8) << getCompTime()
-            << ", sum of path length=" << std::right << std::setw(8) << cost
-            << std::endl;
+  std::cout << "solved=" << solved << ", solver=" << std::right << std::setw(8)
+            << solver_name << ", comp_time(ms)=" << std::right << std::setw(8)
+            << getCompTime() << ", sum of path length=" << std::right
+            << std::setw(8) << cost << std::endl;
 }
 
 void Solver::printHelpWithoutOption(const std::string& solver_name)
@@ -205,29 +200,27 @@ void Solver::createDistanceTable()
 // -------------------------------
 // utilities for getting path
 // -------------------------------
-Solver::CompareAstarNodes Solver::compareAstarNodesDefault =
-  [](AstarNode* a, AstarNode* b) {
-    if (a->f != b->f) return a->f > b->f;
-    if (a->g != b->g) return a->g < b->g;
-    return false;
-  };
+Solver::CompareAstarNodes Solver::compareAstarNodesDefault = [](AstarNode* a,
+                                                                AstarNode* b) {
+  if (a->f != b->f) return a->f > b->f;
+  if (a->g != b->g) return a->g < b->g;
+  return false;
+};
 
-Path Solver::getPath
-(const int id,
- CheckInvalidMove checkInvalidNode,
- CompareAstarNodes compare)
+Path Solver::getPath(const int id, CheckInvalidMove checkInvalidNode,
+                     CompareAstarNodes compare)
 {
   Node* const s = P->getStart(id);
   Node* const g = P->getGoal(id);
 
   AstarNodes GC;  // garbage collection
   auto createNewNode = [&GC](Node* v, int g, int f, AstarNode* p) {
-    AstarNode* new_node = new AstarNode{ v, g, f, p };
+    AstarNode* new_node = new AstarNode{v, g, f, p};
     GC.push_back(new_node);
     return new_node;
   };
 
-    // OPEN and CLOSE list
+  // OPEN and CLOSE list
   std::priority_queue<AstarNode*, AstarNodes, decltype(compare)> OPEN(compare);
   std::vector<bool> CLOSE(G->getNodesSize(), false);
 
@@ -283,19 +276,20 @@ Path Solver::getPath
   return path;
 }
 
-Path Solver::getPrioritizedPath(const int id, const Plan& paths, TableFragment& table)
+Path Solver::getPrioritizedPath(const int id, const Plan& paths,
+                                TableFragment& table)
 {
   Node* const g = P->getGoal(id);
 
   auto compare = [&](AstarNode* a, AstarNode* b) {
-      if (a->f != b->f) return a->f > b->f;
-      // tie break
-      int fragments_a = table.t_from[a->v->id].size();
-      int fragments_b = table.t_from[b->v->id].size();
-      if (fragments_a != fragments_b) return  fragments_a > fragments_b;
-      if (a->g != b->g) return a->g < b->g;
-      return false;
-    };
+    if (a->f != b->f) return a->f > b->f;
+    // tie break
+    int fragments_a = table.t_from[a->v->id].size();
+    int fragments_b = table.t_from[b->v->id].size();
+    if (fragments_a != fragments_b) return fragments_a > fragments_b;
+    if (a->g != b->g) return a->g < b->g;
+    return false;
+  };
 
   auto checkInvalidNode = [&](Node* child, Node* parent) {
     // condition 1, avoid goals

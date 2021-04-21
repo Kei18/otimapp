@@ -1,5 +1,5 @@
 /*
- * Implementation of Prioritized Planning
+ * Implementation of PP
  */
 
 #pragma once

@@ -1,27 +1,29 @@
 #pragma once
 
-#include <memory>
 #include <fstream>
-#include "problem.hpp"
+#include <memory>
+
 #include "agent.hpp"
 #include "lib_execution.hpp"
+#include "problem.hpp"
 
-class Execution {
+class Execution
+{
 protected:
-  std::string problem_name;      // problem name
-  Problem* const P;              // problem instance
-  const std::string plan_file;   // file of planning result
-  bool solved;                   // check validity of the plan
-  Plan plan;                     // planning
-  bool exec_succeed;             // whether to succeed the execution
-  const int seed;                // seed
-  std::mt19937* MT;              // seed
-  const bool verbose;            // print info or not
-  const bool log_short;          // make log short
+  std::string problem_name;     // problem name
+  Problem* const P;             // problem instance
+  const std::string plan_file;  // file of planning result
+  bool solved;                  // check validity of the plan
+  Plan plan;                    // planning
+  bool exec_succeed;            // whether to succeed the execution
+  const int seed;               // seed
+  std::mt19937* MT;             // seed
+  const bool verbose;           // print info or not
+  const bool log_short;         // make log short
 
-  Configs exec_result;             // execution result
+  Configs exec_result;                     // execution result
   std::vector<MAPF_DP_Agent::State> HIST;  // execution history
-  int emulation_time;              // time required for emulation
+  int emulation_time;                      // time required for emulation
 
   // -------------------------------
   // utilities for debug
@@ -43,11 +45,8 @@ protected:
   virtual void makeLogSpecific(std::ofstream& log) const {};
 
 public:
-  Execution(Problem* _P,
-            std::string _plan_file,
-            int _seed = DEFAULT_SEED,
-            bool _verbose = false,
-            bool _log_short = false);
+  Execution(Problem* _P, std::string _plan_file, int _seed = DEFAULT_SEED,
+            bool _verbose = false, bool _log_short = false);
   virtual ~Execution();
 
   // -------------------------------
@@ -70,7 +69,7 @@ class MAPF_DP_Execution : public Execution
 private:
   static const std::string PROBLEM_NAME;
 
-  const float ub_delay_prob;     // upper bound of delay probabilities
+  const float ub_delay_prob;       // upper bound of delay probabilities
   std::vector<float> delay_probs;  // array of delay probabilities
 
   void makeLogSpecific(std::ofstream& log) const;
@@ -80,12 +79,10 @@ private:
   void simulate();
 
 public:
-  MAPF_DP_Execution(Problem* _P,
-                    std::string _plan_file,
+  MAPF_DP_Execution(Problem* _P, std::string _plan_file,
                     int _seed = DEFAULT_SEED,
                     float _ub_delay_prob = DEFAULT_UB_DELAY_PROB,
-                    bool _verbose = false,
-                    bool _log_short = false);
+                    bool _verbose = false, bool _log_short = false);
   ~MAPF_DP_Execution() {}
 };
 
@@ -100,10 +97,8 @@ private:
   void simulate();
 
 public:
-  PrimitiveExecution(Problem* _P,
-                     std::string _plan_file,
-                     int _seed = DEFAULT_SEED,
-                     bool _verbose = false,
+  PrimitiveExecution(Problem* _P, std::string _plan_file,
+                     int _seed = DEFAULT_SEED, bool _verbose = false,
                      bool _log_short = false);
   ~PrimitiveExecution() {}
 };

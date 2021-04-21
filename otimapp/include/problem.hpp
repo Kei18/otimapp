@@ -1,6 +1,6 @@
 #pragma once
-#include <random>
 #include <graph.hpp>
+#include <random>
 
 #include "default_params.hpp"
 #include "util.hpp"

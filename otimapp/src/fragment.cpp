@@ -1,13 +1,15 @@
 #include "../include/fragment.hpp"
+
 #include <iostream>
 #include <set>
+
 #include "../include/util.hpp"
 
 TableFragment::TableFragment(Graph* _G, const int _max_fragment_size)
-  : t_from(_G->getNodesSize()),
-    t_to(_G->getNodesSize()),
-    G(_G),
-    max_fragment_size(_max_fragment_size)
+    : t_from(_G->getNodesSize()),
+      t_to(_G->getNodesSize()),
+      G(_G),
+      max_fragment_size(_max_fragment_size)
 {
 }
 
@@ -18,17 +20,20 @@ TableFragment::~TableFragment()
   }
 }
 
-bool TableFragment::existDuplication(const std::deque<Node*>& path, const std::deque<int>& agents)
+bool TableFragment::existDuplication(const std::deque<Node*>& path,
+                                     const std::deque<int>& agents)
 {
   std::set<int> set_agents;
-  for (auto itr = agents.begin(); itr != agents.end(); ++itr) set_agents.insert(*itr);
+  for (auto itr = agents.begin(); itr != agents.end(); ++itr)
+    set_agents.insert(*itr);
   for (auto c : t_from[path.front()->id]) {
     // different paths
     if (c->path != path) continue;
 
     // different agents
     std::set<int> c_agents;
-    for (auto itr = c->agents.begin(); itr != c->agents.end(); ++itr) c_agents.insert(*itr);
+    for (auto itr = c->agents.begin(); itr != c->agents.end(); ++itr)
+      c_agents.insert(*itr);
     if (c_agents != set_agents) continue;
 
     // duplication exists
@@ -37,7 +42,8 @@ bool TableFragment::existDuplication(const std::deque<Node*>& path, const std::d
   return false;
 }
 
-bool TableFragment::isValidTopologyCondition(const std::deque<Node*>& path) const
+bool TableFragment::isValidTopologyCondition(
+    const std::deque<Node*>& path) const
 {
   if (max_fragment_size == -1) return true;
 
@@ -58,8 +64,8 @@ bool TableFragment::isValidTopologyCondition(const std::deque<Node*>& path) cons
   return true;
 }
 
-Fragment* TableFragment::createNewFragment
-(const std::deque<Node*>& path, const std::deque<int>& agents)
+Fragment* TableFragment::createNewFragment(const std::deque<Node*>& path,
+                                           const std::deque<int>& agents)
 {
   auto c = new Fragment();
   c->agents = agents;
@@ -71,11 +77,12 @@ Fragment* TableFragment::createNewFragment
   return c;
 }
 
-Fragment* TableFragment::getPotentialDeadlockIfExist
-(const std::deque<Node*>& path, const std::deque<int>& agents)
+Fragment* TableFragment::getPotentialDeadlockIfExist(
+    const std::deque<Node*>& path, const std::deque<int>& agents)
 {
   // check topology constraints
-  if (path.front() != path.back() && !isValidTopologyCondition(path)) return nullptr;
+  if (path.front() != path.back() && !isValidTopologyCondition(path))
+    return nullptr;
 
   // check duplication
   if (existDuplication(path, agents)) return nullptr;
@@ -87,8 +94,9 @@ Fragment* TableFragment::getPotentialDeadlockIfExist
 }
 
 // create new entry
-Fragment* TableFragment::getPotentialDeadlockIfExist
-(const int id, Node* head, Fragment* c_base, Node* tail)
+Fragment* TableFragment::getPotentialDeadlockIfExist(const int id, Node* head,
+                                                     Fragment* c_base,
+                                                     Node* tail)
 {
   // avoid loop with own path
   if (c_base != nullptr && inArray(id, c_base->agents)) return nullptr;
@@ -110,22 +118,23 @@ Fragment* TableFragment::getPotentialDeadlockIfExist
   } else {
     agents = c_base->agents;
     if (c_base->path.front() != head) agents.push_front(id);
-    if (c_base->path.back()  != tail) agents.push_back(id);
+    if (c_base->path.back() != tail) agents.push_back(id);
   }
 
   // setup path
   std::deque<Node*> path;
   if (c_base == nullptr || head != c_base->path.front()) path.push_back(head);
   if (c_base != nullptr)
-    for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr) path.push_back(*itr);
+    for (auto itr = c_base->path.begin(); itr != c_base->path.end(); ++itr)
+      path.push_back(*itr);
   if (c_base == nullptr || tail != c_base->path.back()) path.push_back(tail);
 
   return getPotentialDeadlockIfExist(path, agents);
 }
 
 // return deadlock or nullptr
-Fragment* TableFragment::registerNewPath
-(const int id, const Path path, const bool force, const int time_limit)
+Fragment* TableFragment::registerNewPath(const int id, const Path path,
+                                         const bool force, const int time_limit)
 {
   Fragment* res = nullptr;
   auto t_s = Time::now();
@@ -135,7 +144,7 @@ Fragment* TableFragment::registerNewPath
     // check time limit
     if (time_limit >= 0 && getElapsedTime(t_s) > time_limit) return nullptr;
 
-    auto v_before = path[t-1];
+    auto v_before = path[t - 1];
     auto v_next = path[t];
 
     // add own segment
@@ -164,18 +173,17 @@ Fragment* TableFragment::registerNewPath
 
     // 2. main loop
     for (auto c_tail : c_tails) {
-
       // check time limit
       if (time_limit >= 0 && getElapsedTime(t_s) > time_limit) return nullptr;
 
       for (auto c_head : c_heads) {
-
         // check length
         if (max_fragment_size != -1) {
           int size = (int)(c_tail->agents.size() + c_head->agents.size()) + 1;
           if (size > max_fragment_size) {
             continue;
-          } else if (size == max_fragment_size && c_tail->path.front() != c_head->path.back()) {
+          } else if (size == max_fragment_size &&
+                     c_tail->path.front() != c_head->path.back()) {
             continue;
           }
         }
