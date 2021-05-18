@@ -2,7 +2,7 @@ otimapp
 ===
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-A simulator and visualizer used in a paper "Offline Time-Independent Multi-Agent Path Planning" (OTIMAPP).
+A simulator and visualizer used in a paper ["Offline Time-Independent Multi-Agent Path Planning"](https://kei18.github.io/otimapp/) (OTIMAPP).
 It is written in C++(17) with [CMake](https://cmake.org/) (≥v3.16) build.
 The repository uses [Google Test](https://github.com/google/googletest) and [the original library for 2D pathfinding](https://github.com/Kei18/grid-pathfinding) as git submodules.
 The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on MacOS.
@@ -19,7 +19,7 @@ Please cite the following paper if you use the code in your published research:
 @article{okumura2021offline,
   title={Offline Time-Independent Multi-Agent Path Planning},
   author={Okumura, Keisuke and Bonnet, Fran{\c{c}}ois and Tamura, Yasumasa and D{\'e}fago, Xavier},
-  journal={arXiv preprint arXiv:xxxxxx},
+  journal={arXiv preprint arXiv:2105.07132},
   year={2021}
 }
 ```
