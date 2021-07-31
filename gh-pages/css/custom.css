@@ -20,3 +20,9 @@ body {
   width: 100%;
   height: 100%;
 }
+
+.citation {
+  background-color: #e1e1e163;
+  padding-left: 3px;
+  padding-top: 3px;
+}
