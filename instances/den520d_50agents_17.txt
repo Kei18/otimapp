@@ -2,7 +2,7 @@ map_file=den520d.map
 agents=50
 seed=16
 random_problem=0
-max_comp_time=30000
+max_comp_time=3000000
 224,85,58,149
 160,88,93,82
 205,208,128,111

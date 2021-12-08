@@ -2,7 +2,7 @@ map_file=random-64-64-10.map
 agents=100
 seed=5
 random_problem=0
-max_comp_time=10000
+max_comp_time=3000000
 14,35,47,63
 61,26,38,47
 54,49,16,22
