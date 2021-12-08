@@ -5,6 +5,7 @@ on:
     branches:
       - dev
       - public
+      - ijcai22
     paths:
       - 'otimapp/**'
       - 'tests/**'

@@ -15,17 +15,12 @@ struct TableFragment {
   std::vector<std::vector<Fragment*>> t_to;    // table to
   Graph* G;
 
-  int max_fragment_size;  // maximum fragment size
-
-  TableFragment(Graph* _G, const int _max_fragment_size = -1);
+  TableFragment(Graph* _G);
   ~TableFragment();
 
   // check duplication
   bool existDuplication(const std::deque<Node*>& path,
                         const std::deque<int>& agents);
-
-  // branching, valid only when max_fragment_size > 0
-  bool isValidTopologyCondition(const std::deque<Node*>& path) const;
 
   // create new entry
   Fragment* createNewFragment(const std::deque<Node*>& path,

@@ -1,16 +1,15 @@
-#include "../include/complete_planning.hpp"
+#include "../include/dbs.hpp"
 
-const std::string CompletePlanning::SOLVER_NAME = "CompletePlanning";
+const std::string DBS::SOLVER_NAME = "DBS";
 
-CompletePlanning::CompletePlanning(Problem* _P)
-    : Solver(_P), max_fragment_size(DEFAULT_MAX_FRAGMENT_SIZE)
+DBS::DBS(Problem* _P) : Solver(_P)
 {
   solver_name = SOLVER_NAME;
 }
 
-CompletePlanning::~CompletePlanning() {}
+DBS::~DBS() {}
 
-void CompletePlanning::run()
+void DBS::run()
 {
   // set objective function
   auto compare = [](HighLevelNode_p a, HighLevelNode_p b) {
@@ -76,12 +75,12 @@ void CompletePlanning::run()
   }
 }
 
-CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
+DBS::HighLevelNode_p DBS::getInitialNode()
 {
   auto n = std::make_shared<HighLevelNode>();
 
   // to manage potential deadlocks
-  TableFragment table(G, max_fragment_size);
+  TableFragment table(G);
 
   for (int i = 0; i < P->getNum(); ++i) {
     // find a deadlock-free path as much as possible
@@ -108,7 +107,7 @@ CompletePlanning::HighLevelNode_p CompletePlanning::getInitialNode()
   return n;
 }
 
-CompletePlanning::HighLevelNode_p CompletePlanning::invoke(HighLevelNode_p n,
+DBS::HighLevelNode_p DBS::invoke(HighLevelNode_p n,
                                                            Constraint_p c)
 {
   auto m = std::make_shared<HighLevelNode>();
@@ -130,7 +129,7 @@ CompletePlanning::HighLevelNode_p CompletePlanning::invoke(HighLevelNode_p n,
   return m;
 }
 
-Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
+Path DBS::getConstrainedPath(const int id, HighLevelNode_p node)
 {
   Node* const g = P->getGoal(id);
 
@@ -181,11 +180,11 @@ Path CompletePlanning::getConstrainedPath(const int id, HighLevelNode_p node)
   return Solver::getPath(id, checkInvalidMove, compare);
 }
 
-CompletePlanning::Constraints CompletePlanning::getConstraints(
+DBS::Constraints DBS::getConstraints(
     const Plan& paths) const
 {
   Constraints constraints = {};
-  TableFragment table(G, max_fragment_size);
+  TableFragment table(G);
 
   // main loop
   for (int i = 0; i < P->getNum(); ++i) {
@@ -204,7 +203,7 @@ CompletePlanning::Constraints CompletePlanning::getConstraints(
   return constraints;
 }
 
-int CompletePlanning::countsSwapConlicts(const Plan& paths)
+int DBS::countsSwapConlicts(const Plan& paths)
 {
   std::vector<std::vector<int>> to_from_table(G->getNodesSize());
   int cnt = 0;
@@ -223,32 +222,13 @@ int CompletePlanning::countsSwapConlicts(const Plan& paths)
   return cnt;
 }
 
-void CompletePlanning::setParams(int argc, char* argv[])
+void DBS::setParams(int argc, char* argv[])
 {
-  struct option longopts[] = {
-      {"max-fragment-size", required_argument, 0, 'f'},
-      {0, 0, 0, 0},
-  };
-  optind = 1;  // reset
-  int opt, longindex;
-  while ((opt = getopt_long(argc, argv, "f:", longopts, &longindex)) != -1) {
-    switch (opt) {
-      case 'f':
-        max_fragment_size = std::atoi(optarg);
-        break;
-      default:
-        break;
-    }
-  }
 }
 
-void CompletePlanning::printHelp()
+void DBS::printHelp()
 {
   std::cout << SOLVER_NAME << "\n"
-
-            << "  -f --max-fragment-size"
-            << "        "
-            << "maximum fragment size"
-
+            << "  (no option)"
             << std::endl;
 }

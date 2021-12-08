@@ -1,10 +1,10 @@
 #include <getopt.h>
 
-#include <complete_planning.hpp>
+#include <dbs.hpp>
 #include <default_params.hpp>
 #include <fstream>
 #include <iostream>
-#include <prioritized_planning.hpp>
+#include <pp.hpp>
 #include <problem.hpp>
 #include <random>
 #include <regex>
@@ -104,16 +104,16 @@ std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
                                   bool verbose, int argc, char* argv[])
 {
   std::unique_ptr<Solver> solver;
-  if (solver_name == "PrioritizedPlanning" || solver_name == "PP") {
-    solver = std::make_unique<PrioritizedPlanning>(P);
-  } else if (solver_name == "CompletePlanning" || solver_name == "CP") {
-    solver = std::make_unique<CompletePlanning>(P);
+  if (solver_name == "PP") {
+    solver = std::make_unique<PP>(P);
+  } else if (solver_name == "DBS") {
+    solver = std::make_unique<DBS>(P);
   } else {
     std::cout << "warn@app: "
               << "unknown solver name, " + solver_name +
-                     ", continue by PrioritizedPlanning"
+                     ", continue by PP"
               << std::endl;
-    solver = std::make_unique<PrioritizedPlanning>(P);
+    solver = std::make_unique<PP>(P);
   }
 
   solver->setParams(argc, argv);
@@ -135,6 +135,6 @@ void printHelp()
                "random starts/goals"
             << "\n\nSolver Options:" << std::endl;
   // each solver
-  PrioritizedPlanning::printHelp();
-  CompletePlanning::printHelp();
+  PP::printHelp();
+  DBS::printHelp();
 }

@@ -36,7 +36,7 @@ add_test(test_execution ./tests/test_execution.cpp)
 add_test(test_fragment ./tests/test_fragment.cpp)
 # solver
 add_test(test_pp ./tests/test_pp.cpp)
-add_test(test_cp ./tests/test_cp.cpp)
+add_test(test_cp ./tests/test_dbs.cpp)
 #
 add_executable(test ${TEST_ALL_SRC})
 target_link_libraries(test lib-otimapp gtest)

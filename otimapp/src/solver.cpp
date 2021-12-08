@@ -288,7 +288,7 @@ Path Solver::getPrioritizedPath(const int id, const Plan& paths,
     int fragments_b = table.t_from[b->v->id].size();
     if (fragments_a != fragments_b) return fragments_a > fragments_b;
     if (a->g != b->g) return a->g < b->g;
-    return false;
+    return a->v->id < b->v->id;
   };
 
   auto checkInvalidNode = [&](Node* child, Node* parent) {

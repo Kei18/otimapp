@@ -5,11 +5,10 @@
 
 #include "../include/util.hpp"
 
-TableFragment::TableFragment(Graph* _G, const int _max_fragment_size)
+TableFragment::TableFragment(Graph* _G)
     : t_from(_G->getNodesSize()),
       t_to(_G->getNodesSize()),
-      G(_G),
-      max_fragment_size(_max_fragment_size)
+      G(_G)
 {
 }
 
@@ -42,28 +41,6 @@ bool TableFragment::existDuplication(const std::deque<Node*>& path,
   return false;
 }
 
-bool TableFragment::isValidTopologyCondition(
-    const std::deque<Node*>& path) const
-{
-  if (max_fragment_size == -1) return true;
-
-  auto head = path.front();
-  auto tail = path.back();
-  auto length = (int)path.size() - 1;  // number of agents in the fragment
-
-  // fast check
-  if (head->manhattanDist(tail) + length > max_fragment_size) return false;
-
-  // finding shortest path
-  Nodes prohibited;
-  for (int t = 1; t < (int)path.size() - 1; ++t) prohibited.push_back(path[t]);
-  auto p = G->getPath(tail, head, prohibited);
-  if (p.empty()) return false;
-  if ((int)p.size() - 1 + length > max_fragment_size) return false;
-
-  return true;
-}
-
 Fragment* TableFragment::createNewFragment(const std::deque<Node*>& path,
                                            const std::deque<int>& agents)
 {
@@ -71,6 +48,7 @@ Fragment* TableFragment::createNewFragment(const std::deque<Node*>& path,
   c->agents = agents;
   c->path = path;
 
+  // register on tables
   t_from[c->path.front()->id].push_back(c);
   t_to[c->path.back()->id].push_back(c);
 
@@ -80,10 +58,6 @@ Fragment* TableFragment::createNewFragment(const std::deque<Node*>& path,
 Fragment* TableFragment::getPotentialDeadlockIfExist(
     const std::deque<Node*>& path, const std::deque<int>& agents)
 {
-  // check topology constraints
-  if (path.front() != path.back() && !isValidTopologyCondition(path))
-    return nullptr;
-
   // check duplication
   if (existDuplication(path, agents)) return nullptr;
 
@@ -94,22 +68,14 @@ Fragment* TableFragment::getPotentialDeadlockIfExist(
 }
 
 // create new entry
-Fragment* TableFragment::getPotentialDeadlockIfExist(const int id, Node* head,
-                                                     Fragment* c_base,
-                                                     Node* tail)
+Fragment* TableFragment::getPotentialDeadlockIfExist
+(const int id,
+ Node* head,
+ Fragment* c_base,
+ Node* tail)
 {
   // avoid loop with own path
   if (c_base != nullptr && inArray(id, c_base->agents)) return nullptr;
-
-  // check maximum fragment length
-  if (c_base != nullptr && max_fragment_size != -1) {
-    auto size = (int)c_base->agents.size() + 1;
-    if (size > max_fragment_size) {
-      return nullptr;
-    } else if (size == max_fragment_size && head != tail) {
-      return nullptr;
-    }
-  }
 
   // setup agents
   std::deque<int> agents;
@@ -177,17 +143,6 @@ Fragment* TableFragment::registerNewPath(const int id, const Path path,
       if (time_limit >= 0 && getElapsedTime(t_s) > time_limit) return nullptr;
 
       for (auto c_head : c_heads) {
-        // check length
-        if (max_fragment_size != -1) {
-          int size = (int)(c_tail->agents.size() + c_head->agents.size()) + 1;
-          if (size > max_fragment_size) {
-            continue;
-          } else if (size == max_fragment_size &&
-                     c_tail->path.front() != c_head->path.back()) {
-            continue;
-          }
-        }
-
         // avoid self loop
         {
           // agents

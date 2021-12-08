@@ -1,5 +1,5 @@
 /*
- * Implementation of CP: partially complete planning
+ * Implementation of DBS
  */
 
 #pragma once
@@ -7,15 +7,12 @@
 
 #include "solver.hpp"
 
-class CompletePlanning : public Solver
+class DBS : public Solver
 {
 public:
   static const std::string SOLVER_NAME;
 
 private:
-  int max_fragment_size;  // maximum fragment size
-  static constexpr int DEFAULT_MAX_FRAGMENT_SIZE = -1;
-
   // main
   void run();
 
@@ -57,8 +54,8 @@ private:
   int countsSwapConlicts(const Plan& paths);
 
 public:
-  CompletePlanning(Problem* _P);
-  ~CompletePlanning();
+  DBS(Problem* _P);
+  ~DBS();
 
   void setParams(int argc, char* argv[]);
   static void printHelp();
