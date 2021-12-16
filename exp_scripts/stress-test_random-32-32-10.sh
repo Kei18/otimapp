@@ -4,7 +4,7 @@ start_date=`getDate`
 
 scen_start=1
 scen_end=25
-force=1
+force=0
 map="random-32-32-10.map"
 agents_list=$(seq 10 10 100)
 time_limit=300000
@@ -14,6 +14,7 @@ exec_repetation=0
 solvers=(
     "PP -m 100000"
     "CP"
+    "PP -m 1"
 )
 
 for solver in "${solvers[@]}"

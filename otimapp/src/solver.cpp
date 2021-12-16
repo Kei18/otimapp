@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <typeinfo>
 
 MinimumSolver::MinimumSolver(Problem* _P)
     : solver_name(""),
@@ -108,10 +109,12 @@ void Solver::makeLog(const std::string& logfile)
 
 void Solver::makeLogBasicInfo(std::ofstream& log)
 {
-  Grid* grid = reinterpret_cast<Grid*>(P->getG());
   log << "instance=" << P->getInstanceFileName() << "\n";
   log << "agents=" << P->getNum() << "\n";
-  log << "map_file=" << grid->getMapFileName() << "\n";
+  if (typeid(P->getG()) == typeid(Grid*)) {
+    Grid* grid = reinterpret_cast<Grid*>(P->getG());
+    log << "map_file=" << grid->getMapFileName() << "\n";
+  }
   log << "seed=" << P->getSeed() << "\n";
   log << "solver=" << solver_name << "\n";
   log << "solved=" << solved << "\n";
@@ -121,15 +124,24 @@ void Solver::makeLogBasicInfo(std::ofstream& log)
 
 void Solver::makeLogSolution(std::ofstream& log)
 {
+  bool is_grid = (typeid(P->getG()) == typeid(Grid*));
   log << "starts=";
   for (int i = 0; i < P->getNum(); ++i) {
     Node* v = P->getStart(i);
-    log << "(" << v->pos.x << "," << v->pos.y << "),";
+    if (is_grid) {
+      log << "(" << v->pos.x << "," << v->pos.y << "),";
+    } else {
+      log << v->id << ",";
+    }
   }
   log << "\ngoals=";
   for (int i = 0; i < P->getNum(); ++i) {
     Node* v = P->getGoal(i);
-    log << "(" << v->pos.x << "," << v->pos.y << "),";
+    if (is_grid) {
+      log << "(" << v->pos.x << "," << v->pos.y << "),";
+    } else {
+      log << v->id << ",";
+    }
   }
   log << "\n";
   log << "sum-of-path-length:"

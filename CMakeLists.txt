@@ -8,6 +8,10 @@ add_executable(app app.cpp)
 target_compile_features(app PUBLIC cxx_std_17)
 target_link_libraries(app lib-otimapp)
 
+add_executable(app_random_graph app_random_graph.cpp)
+target_compile_features(app PUBLIC cxx_std_17)
+target_link_libraries(app_random_graph lib-otimapp)
+
 add_executable(exec exec.cpp)
 target_compile_features(exec PUBLIC cxx_std_17)
 target_link_libraries(exec lib-otimapp)
@@ -34,6 +38,7 @@ add_test(test_problem ./tests/test_problem.cpp)
 add_test(test_agent ./tests/test_agent.cpp)
 add_test(test_execution ./tests/test_execution.cpp)
 add_test(test_fragment ./tests/test_fragment.cpp)
+add_test(test_random_graph ./tests/test_random_graph.cpp)
 # solver
 add_test(test_pp ./tests/test_pp.cpp)
 add_test(test_cp ./tests/test_dbs.cpp)

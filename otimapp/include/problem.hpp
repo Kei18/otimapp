@@ -32,6 +32,7 @@ private:
 
 public:
   Problem(const std::string& _instance);
+  Problem(int _nodes_size, float _prob, int _num_agents, int _seed);
   ~Problem();
 
   Graph* getG() { return G; }
