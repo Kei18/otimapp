@@ -32,7 +32,7 @@ void PP::run()
 
     // main
     bool invalid = false;
-    TableFragment table(G);
+    auto table = new TableFragment(G);
     for (int j = 0; j < P->getNum(); ++j) {
       const int i = id_list[j];
 
@@ -41,7 +41,9 @@ void PP::run()
            "init-dist:", pathDist(i), ", progress:", j + 1, "/", P->getNum());
 
       // get prioritized path
-      solution[i] = getPrioritizedPath(i, solution, table);
+      auto t_p = Time::now();
+      solution[i] = getPrioritizedPath(i, solution, *table);
+      elapsed_time_pathfinding += getElapsedTime(t_p);
 
       // failed
       if (solution[i].empty() || overCompTime()) {
@@ -50,10 +52,16 @@ void PP::run()
       }
 
       // register new path
-      auto c = table.registerNewPath(i, solution[i], false, getRemainedTime());
+      auto t_d = Time::now();
+      auto c = table->registerNewPath(i, solution[i], false, getRemainedTime());
+      elapsed_time_deadlock_detection += getElapsedTime(t_d);
       if (c != nullptr) halt("detect deadlock");
     }
     solved = !invalid;
+
+    auto t_d = Time::now();
+    delete table;
+    elapsed_time_deadlock_detection += getElapsedTime(t_d);
   }
 }
 

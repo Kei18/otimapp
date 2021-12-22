@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 source `dirname $0`/util.sh
 start_date=`getDate`
 

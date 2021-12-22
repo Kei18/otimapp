@@ -48,7 +48,7 @@ private:
   Path getConstrainedPath(const int id, Constraints& _constraints);
 
   // get constraints
-  Constraints getConstraints(const Plan& paths) const;
+  Constraints getConstraints(const Plan& paths);
 
   // count #(head-on collisions)
   int countsSwapConlicts(const Plan& paths);

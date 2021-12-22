@@ -41,7 +41,9 @@ Solver::Solver(Problem* _P)
       verbose(false),
       distance_table(P->getNum(),
                      std::vector<int>(G->getNodesSize(), G->getNodesSize())),
-      table_goals(G->getNodesSize(), false)
+      table_goals(G->getNodesSize(), false),
+      elapsed_time_pathfinding(0),
+      elapsed_time_deadlock_detection(0)
 {
 }
 
@@ -120,6 +122,8 @@ void Solver::makeLogBasicInfo(std::ofstream& log)
   log << "solved=" << solved << "\n";
   log << "unsolvable=" << unsolvable << "\n";
   log << "comp_time=" << getCompTime() << "\n";
+  log << "elapsed_pathfinding=" << elapsed_time_pathfinding << "\n";
+  log << "elapsed_deadlock_detection=" << elapsed_time_deadlock_detection << "\n";
 }
 
 void Solver::makeLogSolution(std::ofstream& log)

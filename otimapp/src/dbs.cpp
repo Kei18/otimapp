@@ -80,16 +80,20 @@ DBS::HighLevelNode_p DBS::getInitialNode()
   auto n = std::make_shared<HighLevelNode>();
 
   // to manage potential deadlocks
-  TableFragment table(G);
+  auto table = new TableFragment(G);
 
   for (int i = 0; i < P->getNum(); ++i) {
     // find a deadlock-free path as much as possible
-    auto p = getPrioritizedPath(i, n->paths, table);
+    auto t_p = Time::now();
+    auto p = getPrioritizedPath(i, n->paths, *table);
+    elapsed_time_pathfinding += getElapsedTime(t_p);
 
     // failed to find such a path
     if (p.empty()) {
       // returns a path with potential deadlocks
+      auto t_p = Time::now();
       p = getConstrainedPath(i, n);
+      elapsed_time_pathfinding += getElapsedTime(t_p);
       // fail to find a path
       if (p.empty()) {
         n->valid = false;
@@ -99,8 +103,14 @@ DBS::HighLevelNode_p DBS::getInitialNode()
     n->paths.push_back(p);
 
     // update tables
-    table.registerNewPath(i, p, true, getRemainedTime());
+    auto t_d = Time::now();
+    table->registerNewPath(i, p, true, getRemainedTime());
+    elapsed_time_deadlock_detection += getElapsedTime(t_d);
   }
+
+  auto t_d = Time::now();
+  delete table;
+  elapsed_time_deadlock_detection += getElapsedTime(t_d);
 
   // counts head-on collisions
   n->f = countsSwapConlicts(n->paths);
@@ -118,7 +128,9 @@ DBS::HighLevelNode_p DBS::invoke(HighLevelNode_p n,
 
   // create new solution
   m->paths = n->paths;
+  auto t_d = Time::now();
   m->paths[c->agent] = getConstrainedPath(c->agent, m);
+  elapsed_time_deadlock_detection += getElapsedTime(t_d);
 
   // failed to find a path
   m->valid = !m->paths[c->agent].empty();
@@ -180,15 +192,16 @@ Path DBS::getConstrainedPath(const int id, HighLevelNode_p node)
   return Solver::getPath(id, checkInvalidMove, compare);
 }
 
-DBS::Constraints DBS::getConstraints(
-    const Plan& paths) const
+DBS::Constraints DBS::getConstraints(const Plan& paths)
 {
   Constraints constraints = {};
-  TableFragment table(G);
+  auto table = new TableFragment(G);
 
   // main loop
   for (int i = 0; i < P->getNum(); ++i) {
-    auto c = table.registerNewPath(i, paths[i], false, getRemainedTime());
+    auto t_d = Time::now();
+    auto c = table->registerNewPath(i, paths[i], false, getRemainedTime());
+    elapsed_time_deadlock_detection += getElapsedTime(t_d);
     // found potential deadlocks
     if (c != nullptr) {
       // create constraints
@@ -199,6 +212,10 @@ DBS::Constraints DBS::getConstraints(
       break;
     }
   }
+
+  auto t_d = Time::now();
+  delete table;
+  elapsed_time_deadlock_detection += getElapsedTime(t_d);
 
   return constraints;
 }
