@@ -5,7 +5,7 @@ start_date=`getDate`
 n=1000
 eval_num=100
 time_limit=300000
-force=1
+force=0
 solvers=(
     "PP -m 1"
     "PP -m 100000"

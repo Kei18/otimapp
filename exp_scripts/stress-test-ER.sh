@@ -7,7 +7,7 @@ p_list=(0.003 0.004 0.005)
 agents_list=$(seq 20 20 200)
 eval_num=25
 time_limit=300000
-force=1
+force=0
 
 solvers=(
     "PP -m 1"
