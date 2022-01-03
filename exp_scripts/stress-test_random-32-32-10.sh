@@ -12,9 +12,9 @@ exec_option="_"
 exec_repetation=0
 
 solvers=(
-    "PP -m 100000"
-    "CP"
     "PP -m 1"
+    "PP -m 100000"
+    "DBS"
 )
 
 for solver in "${solvers[@]}"
