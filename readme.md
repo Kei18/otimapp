@@ -120,7 +120,7 @@ bash ./visualizer/scripts/build_macos_10.sh
 ### Usage
 ```sh
 cd build
-../visualize.sh ./exec.txt
+./visualize.sh ./exec.txt
 ```
 
 You can manipulate it via your keyboard. See printed info.
