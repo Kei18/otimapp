@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <typeinfo>
 
 MinimumSolver::MinimumSolver(Problem* _P)
     : solver_name(""),
@@ -40,7 +41,9 @@ Solver::Solver(Problem* _P)
       verbose(false),
       distance_table(P->getNum(),
                      std::vector<int>(G->getNodesSize(), G->getNodesSize())),
-      table_goals(G->getNodesSize(), false)
+      table_goals(G->getNodesSize(), false),
+      elapsed_time_pathfinding(0),
+      elapsed_time_deadlock_detection(0)
 {
 }
 
@@ -108,15 +111,20 @@ void Solver::makeLog(const std::string& logfile)
 
 void Solver::makeLogBasicInfo(std::ofstream& log)
 {
-  Grid* grid = reinterpret_cast<Grid*>(P->getG());
   log << "instance=" << P->getInstanceFileName() << "\n";
   log << "agents=" << P->getNum() << "\n";
-  log << "map_file=" << grid->getMapFileName() << "\n";
+  if (!P->isRandomGraph()) {
+    Grid* grid = reinterpret_cast<Grid*>(P->getG());
+    log << "map_file=" << grid->getMapFileName() << "\n";
+  }
   log << "seed=" << P->getSeed() << "\n";
   log << "solver=" << solver_name << "\n";
   log << "solved=" << solved << "\n";
   log << "unsolvable=" << unsolvable << "\n";
   log << "comp_time=" << getCompTime() << "\n";
+  log << "elapsed_pathfinding=" << elapsed_time_pathfinding << "\n";
+  log << "elapsed_deadlock_detection=" << elapsed_time_deadlock_detection
+      << "\n";
 }
 
 void Solver::makeLogSolution(std::ofstream& log)
@@ -124,12 +132,20 @@ void Solver::makeLogSolution(std::ofstream& log)
   log << "starts=";
   for (int i = 0; i < P->getNum(); ++i) {
     Node* v = P->getStart(i);
-    log << "(" << v->pos.x << "," << v->pos.y << "),";
+    if (!P->isRandomGraph()) {
+      log << "(" << v->pos.x << "," << v->pos.y << "),";
+    } else {
+      log << v->id << ",";
+    }
   }
   log << "\ngoals=";
   for (int i = 0; i < P->getNum(); ++i) {
     Node* v = P->getGoal(i);
-    log << "(" << v->pos.x << "," << v->pos.y << "),";
+    if (!P->isRandomGraph()) {
+      log << "(" << v->pos.x << "," << v->pos.y << "),";
+    } else {
+      log << v->id << ",";
+    }
   }
   log << "\n";
   log << "sum-of-path-length:"
@@ -288,7 +304,7 @@ Path Solver::getPrioritizedPath(const int id, const Plan& paths,
     int fragments_b = table.t_from[b->v->id].size();
     if (fragments_a != fragments_b) return fragments_a > fragments_b;
     if (a->g != b->g) return a->g < b->g;
-    return false;
+    return a->v->id < b->v->id;
   };
 
   auto checkInvalidNode = [&](Node* child, Node* parent) {

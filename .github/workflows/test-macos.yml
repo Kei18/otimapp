@@ -5,6 +5,7 @@ on:
     branches:
       - dev
       - public
+      - ijcai22
     paths:
       - 'otimapp/**'
       - 'tests/**'
@@ -28,15 +29,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: Kei18/grid-pathfinding
-          token: ${{ secrets.PERSONAL_TOKEN }}
           path: third_party/grid-pathfinding
 
       - name: build
-        run: |
-          mkdir build
-          cd build
-          cmake ..
-          make
+        run: cmake -B build && make -C build
 
       - name: test
         working-directory: build
@@ -45,5 +41,5 @@ jobs:
       - name: run-app
         working-directory: build
         run: |
-          ./app -i ../instances/sample.txt -s PrioritizedPlanning -o ./plan.txt -v -f 4
-          ./exec -i ../instances/sample.txt -p ./plan.txt -o ./exec.txt -v -u 0.5
+          ./app -i ../sample-instance.txt -s PP -o ./plan.txt -v
+          ./exec -i ../sample-instance.txt -p ./plan.txt -o ./exec.txt -v -u 0.5

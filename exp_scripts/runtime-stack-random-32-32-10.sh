@@ -3,10 +3,10 @@ source `dirname $0`/util.sh
 start_date=`getDate`
 
 scen_start=1
-scen_end=25
+scen_end=100
 force=0
-map="den520d.map"
-agents_list=$(seq 20 20 200)
+map="random-32-32-10.map"
+agents=60
 time_limit=300000
 exec_option="_"
 exec_repetation=0
@@ -21,7 +21,7 @@ for solver in "${solvers[@]}"
 do
     bash `dirname $0`/run.sh \
        $map \
-       "$agents_list" \
+       "$agents" \
        "$solver" \
        $scen_start \
        $scen_end \

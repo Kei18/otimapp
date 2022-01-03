@@ -65,6 +65,11 @@ protected:
 protected:
   std::vector<bool> table_goals;  // generated in pre-processing, goal location
 
+  // for profiling
+protected:
+  int elapsed_time_pathfinding;
+  int elapsed_time_deadlock_detection;
+
   // -------------------------------
   // main
 private:

@@ -2,3 +2,6 @@
 /build/
 /instances/toy.txt
 /third_party/openFrameworks/
+/instances/
+exec.txt
+plan.txt
