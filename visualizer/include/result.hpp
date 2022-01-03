@@ -1,5 +1,5 @@
 #pragma once
-#include "../../third_party/grid-pathfinding/graph/include/graph.hpp"
+#include "../../third_party/grid_pathfinding/graph/include/graph.hpp"
 
 using Config = std::vector<Node*>;
 using Configs = std::vector<Config>;

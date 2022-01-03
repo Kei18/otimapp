@@ -2,28 +2,9 @@ otimapp
 ===
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-A simulator and visualizer used in a paper ["Offline Time-Independent Multi-Agent Path Planning"](https://kei18.github.io/otimapp/) (OTIMAPP).
+A simulator and visualizer used in a paper "Offline Time-Independent Multi-Agent Path Planning" (OTIMAPP).
 It is written in C++(17) with [CMake](https://cmake.org/) (≥v3.16) build.
-The repository uses [Google Test](https://github.com/google/googletest) and [the original library for 2D pathfinding](https://github.com/Kei18/grid-pathfinding) as git submodules.
 The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on MacOS.
-
-
-| platform | status (public) | status (dev) |
-| ---: | :--- |:--- |
-| macos-10.15 | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=public) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=public) | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=dev) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=dev) |
-| ubuntu-latest | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=public) | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=dev) |
-
-
-Please cite the following paper if you use the code in your published research:
-```
-@article{okumura2021offline,
-  title={Offline Time-Independent Multi-Agent Path Planning},
-  author={Okumura, Keisuke and Bonnet, Fran{\c{c}}ois and Tamura, Yasumasa and D{\'e}fago, Xavier},
-  journal={arXiv preprint arXiv:2105.07132},
-  year={2021}
-}
-```
-
 
 ## Demo
 ![100 agents in arena](./assets/demo.gif)
@@ -33,8 +14,9 @@ planned by PP, execution on MAPF-DP
 ## Building
 
 ```sh
-git clone --recursive https://github.com/Kei18/otimapp.git
-cd otimapp
+cd { this repo }
+git clone https://github.com/google/googletest.git third_party/googletest
+git clone https://github.com/openframeworks/openFrameworks.git third_party/openFrameworks
 cmake -B build && make -C build
 ```
 
@@ -78,7 +60,7 @@ instance=../instances/sample.txt
 agents=100
 map_file=arena.map
 seed=1
-solver=PrioritizedPlanning
+solver=PP
 solved=1
 unsolvable=0
 comp_time=97
@@ -122,6 +104,8 @@ result=
 It takes around 10 minutes.
 
 #### macOS 10.x
+Please checkout openFrameworks to [this commit](https://github.com/openframeworks/openFrameworks/tree/b674f7ec1f41d8f0fcfea86e3d3d3df3e9bdcf36) before building.
+
 ```sh
 bash ./visualizer/scripts/build_macos_10.sh
 ```
@@ -143,8 +127,6 @@ You can manipulate it via your keyboard. See printed info.
 
 
 ## Experimental Environment
-[![v1.1](https://img.shields.io/badge/tag-v1.1-blue.svg?style=flat)](https://github.com/Kei18/otimapp/releases/tag/v1.1)
-
 Scripts for the experiments are in `exp_scripts/`.
 All instances are included in `./instances.zip`.
 
@@ -154,7 +136,4 @@ All instances are included in `./instances.zip`.
 - The font in `visualizer/bin/data` is from [Google Fonts](https://fonts.google.com/).
 
 ## Licence
-This software is released under the MIT License, see [LICENSE.txt](LICENCE.txt).
-
-## Author
-[Keisuke Okumura](https://kei18.github.io) is a Ph.D. student at the Tokyo Institute of Technology, interested in controlling multiple moving agents.
+This software will be released under the MIT License.

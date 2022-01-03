@@ -7,5 +7,5 @@ target_compile_options(lib-otimapp PUBLIC -O3 -Wall -mtune=native -march=native)
 target_compile_features(lib-otimapp PUBLIC cxx_std_17)
 target_include_directories(lib-otimapp INTERFACE ./include)
 
-add_subdirectory(../third_party/grid-pathfinding/graph ./graph)
+add_subdirectory(../third_party/grid_pathfinding/graph ./graph)
 target_link_libraries(lib-otimapp lib-graph)
