@@ -36,10 +36,10 @@ jobs:
 
       - name: test
         working-directory: build
-        run: ./build/test
+        run: ./test
 
       - name: run-app
         working-directory: build
         run: |
-          ./build/app -i ./sample-instance.txt -s PP -o ./plan.txt -v
-          ./build/exec -i ./sample-instance.txt -p ./plan.txt -o ./exec.txt -v -u 0.5
+          ./app -i ../sample-instance.txt -s PP -o ./plan.txt -v
+          ./exec -i ../sample-instance.txt -p ./plan.txt -o ./exec.txt -v -u 0.5
