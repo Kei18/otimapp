@@ -6,9 +6,7 @@
 #include "../include/util.hpp"
 
 TableFragment::TableFragment(Graph* _G)
-    : t_from(_G->getNodesSize()),
-      t_to(_G->getNodesSize()),
-      G(_G)
+    : t_from(_G->getNodesSize()), t_to(_G->getNodesSize()), G(_G)
 {
 }
 
@@ -68,11 +66,9 @@ Fragment* TableFragment::getPotentialDeadlockIfExist(
 }
 
 // create new entry
-Fragment* TableFragment::getPotentialDeadlockIfExist
-(const int id,
- Node* head,
- Fragment* c_base,
- Node* tail)
+Fragment* TableFragment::getPotentialDeadlockIfExist(const int id, Node* head,
+                                                     Fragment* c_base,
+                                                     Node* tail)
 {
   // avoid loop with own path
   if (c_base != nullptr && inArray(id, c_base->agents)) return nullptr;

@@ -2,10 +2,7 @@
 
 const std::string DBS::SOLVER_NAME = "DBS";
 
-DBS::DBS(Problem* _P) : Solver(_P)
-{
-  solver_name = SOLVER_NAME;
-}
+DBS::DBS(Problem* _P) : Solver(_P) { solver_name = SOLVER_NAME; }
 
 DBS::~DBS() {}
 
@@ -117,8 +114,7 @@ DBS::HighLevelNode_p DBS::getInitialNode()
   return n;
 }
 
-DBS::HighLevelNode_p DBS::invoke(HighLevelNode_p n,
-                                                           Constraint_p c)
+DBS::HighLevelNode_p DBS::invoke(HighLevelNode_p n, Constraint_p c)
 {
   auto m = std::make_shared<HighLevelNode>();
 
@@ -239,13 +235,10 @@ int DBS::countsSwapConlicts(const Plan& paths)
   return cnt;
 }
 
-void DBS::setParams(int argc, char* argv[])
-{
-}
+void DBS::setParams(int argc, char* argv[]) {}
 
 void DBS::printHelp()
 {
   std::cout << SOLVER_NAME << "\n"
-            << "  (no option)"
-            << std::endl;
+            << "  (no option)" << std::endl;
 }

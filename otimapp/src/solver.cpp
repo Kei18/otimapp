@@ -113,7 +113,7 @@ void Solver::makeLogBasicInfo(std::ofstream& log)
 {
   log << "instance=" << P->getInstanceFileName() << "\n";
   log << "agents=" << P->getNum() << "\n";
-  if (typeid(P->getG()) == typeid(Grid*)) {
+  if (!P->isRandomGraph()) {
     Grid* grid = reinterpret_cast<Grid*>(P->getG());
     log << "map_file=" << grid->getMapFileName() << "\n";
   }
@@ -123,16 +123,16 @@ void Solver::makeLogBasicInfo(std::ofstream& log)
   log << "unsolvable=" << unsolvable << "\n";
   log << "comp_time=" << getCompTime() << "\n";
   log << "elapsed_pathfinding=" << elapsed_time_pathfinding << "\n";
-  log << "elapsed_deadlock_detection=" << elapsed_time_deadlock_detection << "\n";
+  log << "elapsed_deadlock_detection=" << elapsed_time_deadlock_detection
+      << "\n";
 }
 
 void Solver::makeLogSolution(std::ofstream& log)
 {
-  bool is_grid = (typeid(P->getG()) == typeid(Grid*));
   log << "starts=";
   for (int i = 0; i < P->getNum(); ++i) {
     Node* v = P->getStart(i);
-    if (is_grid) {
+    if (!P->isRandomGraph()) {
       log << "(" << v->pos.x << "," << v->pos.y << "),";
     } else {
       log << v->id << ",";
@@ -141,7 +141,7 @@ void Solver::makeLogSolution(std::ofstream& log)
   log << "\ngoals=";
   for (int i = 0; i < P->getNum(); ++i) {
     Node* v = P->getGoal(i);
-    if (is_grid) {
+    if (!P->isRandomGraph()) {
       log << "(" << v->pos.x << "," << v->pos.y << "),";
     } else {
       log << v->id << ",";

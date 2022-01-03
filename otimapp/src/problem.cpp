@@ -3,15 +3,16 @@
 #include <fstream>
 #include <regex>
 
-#include "../include/util.hpp"
 #include "../include/random_graph.hpp"
+#include "../include/util.hpp"
 
 Problem::Problem(const std::string& _instance)
     : instance(_instance),
       G(nullptr),
       seed(DEFAULT_SEED),
       MT(nullptr),
-      max_comp_time(DEFAULT_MAX_COMP_TIME)
+      max_comp_time(DEFAULT_MAX_COMP_TIME),
+      is_random_graph(false)
 {
   // read instance file
   std::ifstream file(instance);
@@ -116,14 +117,15 @@ Problem::Problem(const std::string& _instance)
   config_g.resize(num_agents);
 }
 
-Problem::Problem(int _nodes_size, float _prob, int _num_agents, int _seed=0)
-  : instance("random(" + std::to_string(_nodes_size) + ","
-             + std::to_string(_prob) + ")_" + std::to_string(_seed)),
-    G(new RandomGraph(_nodes_size, _prob, _seed)),
-    seed(_seed),
-    MT(new std::mt19937(_seed)),
-    num_agents(_num_agents),
-    max_comp_time(DEFAULT_MAX_COMP_TIME)
+Problem::Problem(int _nodes_size, float _prob, int _num_agents, int _seed = 0)
+    : instance("random(" + std::to_string(_nodes_size) + "," +
+               std::to_string(_prob) + ")_" + std::to_string(_seed)),
+      G(new RandomGraph(_nodes_size, _prob, _seed)),
+      seed(_seed),
+      MT(new std::mt19937(_seed)),
+      num_agents(_num_agents),
+      max_comp_time(DEFAULT_MAX_COMP_TIME),
+      is_random_graph(true)
 {
   setGoalAvoidanceInstance();
 }

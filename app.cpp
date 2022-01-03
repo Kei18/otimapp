@@ -110,8 +110,7 @@ std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
     solver = std::make_unique<DBS>(P);
   } else {
     std::cout << "warn@app: "
-              << "unknown solver name, " + solver_name +
-                     ", continue by PP"
+              << "unknown solver name, " + solver_name + ", continue by PP"
               << std::endl;
     solver = std::make_unique<PP>(P);
   }

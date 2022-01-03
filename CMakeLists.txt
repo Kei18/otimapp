@@ -22,7 +22,8 @@ add_custom_target(clang-format
   ../otimapp/include/*.hpp
   ../otimapp/src/*.cpp
   ../tests/*.cpp
-  ../app.cpp)
+  ../app.cpp
+  ../app_random.cpp)
 
 # test
 set(TEST_MAIN_FUNC ./third_party/googletest/googletest/src/gtest_main.cc)

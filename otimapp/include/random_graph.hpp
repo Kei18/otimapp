@@ -1,6 +1,7 @@
 #pragma once
-#include <random>
 #include <graph.hpp>
+#include <random>
+
 #include "util.hpp"
 
 // ER-model
@@ -11,8 +12,8 @@ private:
   const float prob;
 
 public:
-  RandomGraph(int _nodes_size, float _prob, int seed=0)
-    : nodes_size(_nodes_size), prob(_prob)
+  RandomGraph(int _nodes_size, float _prob, int seed = 0)
+      : nodes_size(_nodes_size), prob(_prob)
   {
     auto MT = std::mt19937(seed);
     // create nodes

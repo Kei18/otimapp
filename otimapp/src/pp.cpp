@@ -2,9 +2,7 @@
 
 const std::string PP::SOLVER_NAME = "PP";
 
-PP::PP(Problem* _P)
-    : Solver(_P),
-      iter_cnt_max(DEFAULT_ITER_CNT_MAX)
+PP::PP(Problem* _P) : Solver(_P), iter_cnt_max(DEFAULT_ITER_CNT_MAX)
 {
   solver_name = SOLVER_NAME;
 }
@@ -68,8 +66,8 @@ void PP::run()
 void PP::setParams(int argc, char* argv[])
 {
   struct option longopts[] = {
-    {"iter-cnt-max", required_argument, 0, 'm'},
-    {0, 0, 0, 0},
+      {"iter-cnt-max", required_argument, 0, 'm'},
+      {0, 0, 0, 0},
   };
   optind = 1;  // reset
   int opt, longindex;

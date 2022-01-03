@@ -16,7 +16,8 @@ TEST(TableFragment, registerNewPath)
   ASSERT_NE(c2, nullptr);
 
   // self loop
-  Path p3 = {G.getNode(8), G.getNode(9), G.getNode(17), G.getNode(16), G.getNode(8)};
+  Path p3 = {G.getNode(8), G.getNode(9), G.getNode(17), G.getNode(16),
+             G.getNode(8)};
   auto c3 = table.registerNewPath(2, p3);
   ASSERT_EQ(c3, nullptr);
 }

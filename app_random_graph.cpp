@@ -23,28 +23,29 @@ int main(int argc, char* argv[])
   for (int i = 0; i < argc; ++i) argv_copy[i] = argv[i];
 
   struct option longopts[] = {
-    {"output", required_argument, 0, 'o'},
-    {"solver", required_argument, 0, 's'},
-    {"verbose", no_argument, 0, 'v'},
-    {"help", no_argument, 0, 'h'},
-    {"time-limit", required_argument, 0, 'T'},
-    {"vertex", required_argument, 0, 'n'},
-    {"prob", required_argument, 0, 'p'},
-    {"agent", required_argument, 0, 'k'},
-    {"seed", required_argument, 0, 'r'},
-    {0, 0, 0, 0},
+      {"output", required_argument, 0, 'o'},
+      {"solver", required_argument, 0, 's'},
+      {"verbose", no_argument, 0, 'v'},
+      {"help", no_argument, 0, 'h'},
+      {"time-limit", required_argument, 0, 'T'},
+      {"vertex", required_argument, 0, 'n'},
+      {"prob", required_argument, 0, 'p'},
+      {"agent", required_argument, 0, 'k'},
+      {"seed", required_argument, 0, 'r'},
+      {0, 0, 0, 0},
   };
   int max_comp_time = -1;
 
-  int n = 0;  // #vertex
-  float p = 0;  // prob
-  int k = 0;  // #agent
+  int n = 0;     // #vertex
+  float p = 0;   // prob
+  int k = 0;     // #agent
   int seed = 0;  // seed
 
   // command line args
   int opt, longindex;
   opterr = 0;  // ignore getopt error
-  while ((opt = getopt_long(argc, argv, "o:s:vhT:n:p:k:r:", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(argc, argv, "o:s:vhT:n:p:k:r:", longopts,
+                            &longindex)) != -1) {
     switch (opt) {
       case 'o':
         output_file = std::string(optarg);
@@ -61,26 +62,27 @@ int main(int argc, char* argv[])
       case 'T':
         max_comp_time = std::atoi(optarg);
         break;
-    case 'n':
-      n = std::atoi(optarg);
-      break;
-    case 'p':
-      p = std::atof(optarg);
-      break;
-    case 'k':
-      k = std::atoi(optarg);
-      break;
-    case 'r':
-      seed = std::atoi(optarg);
-      break;
-    default:
-      break;
+      case 'n':
+        n = std::atoi(optarg);
+        break;
+      case 'p':
+        p = std::atof(optarg);
+        break;
+      case 'k':
+        k = std::atoi(optarg);
+        break;
+      case 'r':
+        seed = std::atoi(optarg);
+        break;
+      default:
+        break;
     }
   }
 
   // set problem
   if (n == 0 || p == 0 || k == 0) {
-    std::cout << "specify n (vertex), p (prob), k (agent), and r (seed, optionally), e.g.,"
+    std::cout << "specify n (vertex), p (prob), k (agent), and r (seed, "
+                 "optionally), e.g.,"
               << std::endl;
     std::cout << "> ./app -n 1000 -p 0.01 -k 20 -r 0" << std::endl;
     return 0;
@@ -113,8 +115,7 @@ std::unique_ptr<Solver> getSolver(const std::string solver_name, Problem* P,
     solver = std::make_unique<DBS>(P);
   } else {
     std::cout << "warn@app: "
-              << "unknown solver name, " + solver_name +
-                     ", continue by PP"
+              << "unknown solver name, " + solver_name + ", continue by PP"
               << std::endl;
     solver = std::make_unique<PP>(P);
   }

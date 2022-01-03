@@ -22,6 +22,8 @@ private:
   int num_agents;        // number of agents
   int max_comp_time;     // comp_time limit, ms
 
+  const bool is_random_graph;
+
   // set starts and goals randomly
   void setRandomStartsGoals();
   void setGoalAvoidanceInstance();
@@ -45,6 +47,7 @@ public:
   int getMaxCompTime() const { return max_comp_time; };
   std::string getInstanceFileName() const { return instance; };
   int getSeed() const { return seed; };
+  bool isRandomGraph() const { return is_random_graph; }
 
   void setMaxCompTime(const int t) { max_comp_time = t; }
 

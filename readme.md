@@ -26,49 +26,46 @@ Please cite the following paper if you use the code in your published research:
 
 
 ## Demo
-![100 agents in arena](./material/sample.gif)
+![100 agents in arena](./assets/demo.gif)
 
-4-tolerant solution planned by PP, execution on MAPF-DP
+planned by PP, execution on MAPF-DP
 
 ## Building
 
 ```sh
 git clone --recursive https://github.com/Kei18/otimapp.git
 cd otimapp
-mkdir build
-cd build
-cmake ..
-make
+cmake -B build && make -C build
 ```
 
 ## Usage
 ### Planning
-planed by PP, 4-tolerant solutions
+planed by PP
 ```sh
-./app -i ../instances/sample.txt -s PrioritizedPlanning -o ./plan.txt -v -f 4
+./build/app -i ./sample-instance.txt -s PP -o ./plan.txt -v
 ```
 
 ### Execution
 MAPF-DP, upper bound of delay probabilities is 0.5
 ```sh
-./exec -i ../instances/sample.txt -p ./plan.txt -o ./exec.txt -v -u 0.5
+./build/exec -i ./sample-instance.txt -p ./plan.txt -o ./exec.txt -v -u 0.5
 ```
 
 ### Help
 You can find details and explanations for all parameters with:
 ```sh
-./app --help
+./build/app --help
 ```
 or
 ```sh
-./exec --help
+./build/exec --help
 ```
 
-Please see `instances/sample.txt` for parameters of instances, e.g., filed, number of agents, time limit, etc.
+Please see `./sample-instance.txt` for parameters of instances, e.g., filed, number of agents, time limit, etc.
 
 ### Output File
 
-This is an example output of `../instances/sample.txt`.
+This is an example output of `./sample-instance.txt`.
 Note that `(x, y)` denotes location.
 `(0, 0)` is the left-top point.
 `(x, 0)` is the location at `x`-th column and 1st row.
@@ -124,13 +121,17 @@ result=
 ### Building
 It takes around 10 minutes.
 
-#### macOS
+#### macOS 10.x
 ```sh
-bash ./visualizer/scripts/build_macos.sh
+bash ./visualizer/scripts/build_macos_10.sh
 ```
 
 Note: The script of openFrameworks seems to contain bugs. Check this [issue](https://github.com/openframeworks/openFrameworks/issues/6623). I fixed this in my script :D
 
+#### macOS 11.x
+```sh
+bash ./visualizer/scripts/build_macos_10.sh
+```
 
 ### Usage
 ```sh
@@ -142,9 +143,10 @@ You can manipulate it via your keyboard. See printed info.
 
 
 ## Experimental Environment
-[![v1.0](https://img.shields.io/badge/tag-v1.0-blue.svg?style=flat)](https://github.com/Kei18/otimapp/releases/tag/v1.0)
+[![v1.1](https://img.shields.io/badge/tag-v1.1-blue.svg?style=flat)](https://github.com/Kei18/otimapp/releases/tag/v1.1)
 
 Scripts for the experiments are in `exp_scripts/`.
+All instances are included in `./instances.zip`.
 
 ## Notes
 - Maps in `maps/` are from [Pathfinding Benchmarks](https://movingai.com/benchmarks/).

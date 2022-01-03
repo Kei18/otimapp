@@ -1,6 +1,6 @@
 #include <dbs.hpp>
-#include <problem.hpp>
 #include <default_params.hpp>
+#include <problem.hpp>
 
 #include "gtest/gtest.h"
 
