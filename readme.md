@@ -2,7 +2,7 @@ otimapp
 ===
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-A simulator and visualizer used in a paper ["Offline Time-Independent Multi-Agent Path Planning"](https://kei18.github.io/otimapp/) (OTIMAPP).
+A simulator and visualizer used in a paper ["Offline Time-Independent Multi-Agent Path Planning"](https://kei18.github.io/otimapp/) (OTIMAPP, to appear at IJCAI-22).
 It is written in C++(17) with [CMake](https://cmake.org/) (≥v3.16) build.
 The repository uses [Google Test](https://github.com/google/googletest) and [the original library for 2D pathfinding](https://github.com/Kei18/grid-pathfinding) as git submodules.
 The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on MacOS.
@@ -71,7 +71,7 @@ Note that `(x, y)` denotes location.
 `(x, 0)` is the location at `x`-th column and 1st row.
 A position `(x, y)` are also represented as a single number `i = widht*y + x`.
 
-- `plan.txt`
+<details><summary>plan.txt</summary>
 
 ```txt
 instance=../instances/sample.txt
@@ -91,7 +91,9 @@ plan=
 [...]
 ```
 
-- `exec.txt`
+</details>
+
+<details><summary>exec.txt</summary>
 
 ```txt
 // log from ./plan.txt
@@ -115,6 +117,8 @@ result=
 1:(32,20),(40,5),(20,22),[..]
 [...]
 ```
+
+</details>
 
 ## Visualizer
 
@@ -152,9 +156,10 @@ All instances are included in `./instances.zip`.
 - Maps in `maps/` are from [Pathfinding Benchmarks](https://movingai.com/benchmarks/).
   When you add a new map, please place it in the `maps/` directory.
 - The font in `visualizer/bin/data` is from [Google Fonts](https://fonts.google.com/).
+- The "preprint" branch is for the initial manuscript at arXiv.
 
 ## Licence
 This software is released under the MIT License, see [LICENSE.txt](LICENCE.txt).
 
 ## Author
-[Keisuke Okumura](https://kei18.github.io) is a Ph.D. student at the Tokyo Institute of Technology, interested in controlling multiple moving agents.
+[Keisuke Okumura](https://kei18.github.io) is a Ph.D. student at Tokyo Institute of Technology, interested in controlling multiple moving agents.
