@@ -27,8 +27,6 @@
           <a href="https://github.com/Kei18/toio-exec">[toio execution (GitHub)]</a>
         </p>
 
-        <p class="text-center">*The code repo is currently private for maintenance.</p>
-
         <div class="row">
           <div class="col-md-4">
             <img alt="" src="images/toio.gif" class="img-fluid" style="width:100%;" />
@@ -47,14 +45,14 @@
         <div class="mx-auto mt-5">
           <p class="h5">Overview</p>
           <div class="text-secondary">
-            <p>This paper studies a novel planning problem for multiple agents moving on graphs that we call offline time-independent multi-agent path planning (OTIMAPP). The motivation is to overcome time uncertainties in multi-agent scenarios where we cannot expect agents to act perfectly following timed plans, e.g., executions with mobile robots. For this purpose, OTIMAPP abandons all timing assumptions; it is offline planning that assumes event-driven executions without or less run-time effort. The problem is finding plans to be terminated correctly in any action orders of agents, i.e., guaranteeing that all agents eventually reach their destinations. We address a bunch of questions for this problem: required conditions for feasible solutions, computational complexity, comparison with well-known other multi-agent problems, construction of solvers, effective relaxation of a solution concept, and how to implement the plans by actual robots. Throughout the paper, we establish the foundation of OTIMAPP and demonstrate its utility.</p>
+            <p>This paper studies a novel planning problem for multiple agents that cannot share holding resources, named OTIMAPP (see title). Given a graph and a set of start-goal pairs, the problem consists in assigning a path to each agent that every agent eventually reaches their goal without blocking each other, regardless of how the agents are being scheduled at runtime. The motivation stems from the nature of distributed environments that agents take actions fully asynchronous and have no knowledge about those exact timings of other actors. We present solution conditions, computational complexity, construction of solvers, and robotic applications.</p>
           </div>
         </div>
 
         <div class="mx-auto mt-5">
           <p class="h5">News</p>
           <ul>
-            <li>Not yet!</li>
+            <li>The paper has been accepted to IJCAI-22! (Apr. 2022)</li>
           </ul>
         </div>
 
