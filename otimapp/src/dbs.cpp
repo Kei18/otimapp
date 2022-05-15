@@ -2,7 +2,10 @@
 
 const std::string DBS::SOLVER_NAME = "DBS";
 
-DBS::DBS(Problem* _P) : Solver(_P) { solver_name = SOLVER_NAME; }
+DBS::DBS(Problem* _P) : Solver(_P), max_fragment_size(DEFAULT_MAX_FRAGMENT_SIZE)
+{
+  solver_name = SOLVER_NAME;
+}
 
 DBS::~DBS() {}
 
@@ -77,7 +80,7 @@ DBS::HighLevelNode_p DBS::getInitialNode()
   auto n = std::make_shared<HighLevelNode>();
 
   // to manage potential deadlocks
-  auto table = new TableFragment(G);
+  auto table = new TableFragment(G, max_fragment_size);
 
   for (int i = 0; i < P->getNum(); ++i) {
     // find a deadlock-free path as much as possible
@@ -191,7 +194,7 @@ Path DBS::getConstrainedPath(const int id, HighLevelNode_p node)
 DBS::Constraints DBS::getConstraints(const Plan& paths)
 {
   Constraints constraints = {};
-  auto table = new TableFragment(G);
+  auto table = new TableFragment(G, max_fragment_size);
 
   // main loop
   for (int i = 0; i < P->getNum(); ++i) {
@@ -235,10 +238,32 @@ int DBS::countsSwapConlicts(const Plan& paths)
   return cnt;
 }
 
-void DBS::setParams(int argc, char* argv[]) {}
+void DBS::setParams(int argc, char* argv[])
+{
+  struct option longopts[] = {
+      {"max-fragment-size", required_argument, 0, 'f'},
+      {0, 0, 0, 0},
+  };
+  optind = 1;  // reset
+  int opt, longindex;
+  while ((opt = getopt_long(argc, argv, "f:", longopts, &longindex)) != -1) {
+    switch (opt) {
+      case 'f':
+        max_fragment_size = std::atoi(optarg);
+        break;
+      default:
+        break;
+    }
+  }
+}
 
 void DBS::printHelp()
 {
   std::cout << SOLVER_NAME << "\n"
-            << "  (no option)" << std::endl;
+
+            << "  -f --max-fragment-size"
+            << "        "
+            << "maximum fragment size"
+
+            << std::endl;
 }

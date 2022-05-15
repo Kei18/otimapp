@@ -43,6 +43,7 @@ add_test(test_random_graph ./tests/test_random_graph.cpp)
 # solver
 add_test(test_pp ./tests/test_pp.cpp)
 add_test(test_cp ./tests/test_dbs.cpp)
+add_test(test_m_tolerant ./tests/test_m_tolerant.cpp)
 #
 add_executable(test ${TEST_ALL_SRC})
 target_link_libraries(test lib-otimapp gtest)

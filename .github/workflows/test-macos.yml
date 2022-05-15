@@ -2,10 +2,6 @@ name: test_macos
 
 on:
   push:
-    branches:
-      - dev
-      - public
-      - ijcai22
     paths:
       - 'otimapp/**'
       - 'tests/**'

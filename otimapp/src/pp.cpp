@@ -2,7 +2,10 @@
 
 const std::string PP::SOLVER_NAME = "PP";
 
-PP::PP(Problem* _P) : Solver(_P), iter_cnt_max(DEFAULT_ITER_CNT_MAX)
+PP::PP(Problem* _P)
+    : Solver(_P),
+      iter_cnt_max(DEFAULT_ITER_CNT_MAX),
+      max_fragment_size(DEFAULT_MAX_FRAGMENT_SIZE)
 {
   solver_name = SOLVER_NAME;
 }
@@ -30,7 +33,7 @@ void PP::run()
 
     // main
     bool invalid = false;
-    auto table = new TableFragment(G);
+    auto table = new TableFragment(G, max_fragment_size);
     for (int j = 0; j < P->getNum(); ++j) {
       const int i = id_list[j];
 
@@ -67,14 +70,19 @@ void PP::setParams(int argc, char* argv[])
 {
   struct option longopts[] = {
       {"iter-cnt-max", required_argument, 0, 'm'},
+      {"max-fragment-size", required_argument, 0, 'f'},
       {0, 0, 0, 0},
   };
+
   optind = 1;  // reset
   int opt, longindex;
-  while ((opt = getopt_long(argc, argv, "m:", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(argc, argv, "m:f:", longopts, &longindex)) != -1) {
     switch (opt) {
       case 'm':
         iter_cnt_max = std::atoi(optarg);
+        break;
+      case 'f':
+        max_fragment_size = std::atoi(optarg);
         break;
       default:
         break;
@@ -89,6 +97,12 @@ void PP::printHelp()
             << "  -m --iter-cnt-max"
             << "             "
             << "maximum iterations for randomizing priorities"
+
+            << "\n"
+
+            << "  -f --max-fragment-size"
+            << "        "
+            << "maximum fragment size"
 
             << std::endl;
 }

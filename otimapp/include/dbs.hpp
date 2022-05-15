@@ -13,6 +13,9 @@ public:
   static const std::string SOLVER_NAME;
 
 private:
+  int max_fragment_size;  // maximum fragment size
+  static constexpr int DEFAULT_MAX_FRAGMENT_SIZE = -1;
+
   // main
   void run();
 
