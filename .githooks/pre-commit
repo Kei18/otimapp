@@ -1,0 +1,11 @@
+#!/bin/sh
+echo "code formatting by clang-format"
+clang-format -i \
+             ../otimapp/include/*.hpp \
+             ../otimapp/src/*.cpp \
+             ../tests/*.cpp \
+             ../app.cpp \
+             ../app_random.cpp
+test `git add ./**/*.cpp`
+test `git add ./**/*.hpp`
+echo "formatting done"
