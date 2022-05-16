@@ -33,10 +33,11 @@ TEST(PP, m_tolerant2)
   char argv1[] = "1";
   char argv2[] = "-f";
   char argv3[] = "3";
+  char argv4[] = "4";
 
   auto solver1 = std::make_unique<PP>(&P);
-  char* argv_solver1[] = {argv0, argv1};
-  solver1->setParams(2, argv_solver1);
+  char* argv_solver1[] = {argv0, argv1, argv2, argv4};
+  solver1->setParams(4, argv_solver1);
   solver1->solve();
   ASSERT_FALSE(solver1->succeed());
 
@@ -77,10 +78,11 @@ TEST(DBS, m_tolerant2)
   char argv1[] = "1";
   char argv2[] = "-f";
   char argv3[] = "3";
+  char argv4[] = "4";
 
   auto solver1 = std::make_unique<DBS>(&P);
-  char* argv_solver1[] = {argv0, argv1};
-  solver1->setParams(2, argv_solver1);
+  char* argv_solver1[] = {argv0, argv1, argv2, argv4};
+  solver1->setParams(4, argv_solver1);
   solver1->solve();
   ASSERT_FALSE(solver1->succeed());
 
