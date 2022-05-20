@@ -143,21 +143,25 @@ void Execution::makeLog(const std::string& logfile) const
   log.open(logfile, std::ios::out);
 
   // copy plan file
-  log << "// log from " << plan_file << "\n---\n";
-  std::ifstream file(plan_file);
-  if (!file) {
-    std::cout << "error@app: " << plan_file << " cannot be opened" << std::endl;
-    std::exit(1);
+  if (!log_short) {
+    log << "// log from " << plan_file << "\n---\n";
+    std::ifstream file(plan_file);
+    if (!file) {
+      std::cout << "error@app: " << plan_file << " cannot be opened"
+                << std::endl;
+      std::exit(1);
+    }
+    std::string line;
+    while (getline(file, line)) log << line << "\n";
+    file.close();
   }
-  std::string line;
-  while (getline(file, line)) log << line << "\n";
-  file.close();
 
   // new info
   log << "---\n// exec result\n---\n";
   log << "problem_name=" << problem_name << "\n";
   log << "plan=" << plan_file << "\n";
   makeLogSpecific(log);
+  log << "solved=" << solved << "\n";
   log << "exec_succeed=" << exec_succeed << "\n";
   log << "exec_seed=" << seed << "\n";
   log << "emulation_time=" << emulation_time << "\n";
