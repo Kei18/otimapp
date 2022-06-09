@@ -6,6 +6,7 @@ clang-format -i \
              ./tests/*.cpp \
              ./app.cpp \
              ./app_random.cpp
-test `git add ./**/*.cpp`
-test `git add ./**/*.hpp`
+for FILE in `git diff --staged --name-only`; do
+    git add $FILE
+done
 echo "formatting done"
