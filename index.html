@@ -1,0 +1,98 @@
+<html>
+  <head prefix="og: http://ogp.me/ns#">
+    <title>OTIMAPP</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="OTIMAPP: Offline Time-Independent Independent Multi-Agent Path Planning" />
+    <meta property="og:url" content="http://kei18.github.io/otimapp" />
+    <meta property="og:description" content="We study a novel planning problem for multiple agents that cannot share holding resources, named OTIMAPP." />
+    <meta property="og:image" content="https://kei18.github.io/otimapp/images/teaser.png" />
+    <meta property="og:site_name" content="OTIMAPP" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@_kei18" />
+    <meta property="twitter:image" content="https://kei18.github.io/otimapp/images/teaser.png" />
+    <meta property="fb:app_id" content="255907135746979" />
+    <link rel="stylesheet" href="css/custom.css">
+  </head>
+  <body class="d-flex flex-column h-100">
+
+    <main role="main flex-shrink-0">
+      <div class="container">
+
+        <div class="text-center">
+          <p class="h5">OTIMAPP</p>
+        </div>
+        <p class="h2 text-center">Offline Time-Independent Multi-Agent Path Planning</p>
+        <p class="text-center">
+          <a href="https://kei18.github.io/">Keisuke Okumura</a>,
+          <a href="https://www.coord.c.titech.ac.jp/m/bonnet/">François Bonnet</a>,
+          <a href="https://y7amura.github.io/">Yasumasa Tamura</a>
+          and <a href="https://www.coord.c.titech.ac.jp/m/defago/">Xavier Défago</a></p>
+
+        <p class="text-center mt-3">
+          <a href="https://arxiv.org/abs/2105.07132">[preprint (arXiv)]</a>
+          <a href="https://github.com/Kei18/otimapp">[code (GitHub)]</a>
+          <a href="https://github.com/Kei18/toio-exec">[toio execution (GitHub)]</a>
+        </p>
+
+        <div class="row">
+          <div class="col-md-4">
+            <img alt="" src="images/toio.gif" class="img-fluid" style="width:100%;" />
+            <p class="text-center"><small>centralized execution with <a href="https://toio.io/">toio</a></small></p>
+          </div>
+          <div class="col-md-4">
+            <img alt="" src="images/afada.gif" class="img-fluid" style="width:100%;" />
+            <p class="text-center"><small>decentralized execution with <a href="https://dfg-lab.github.io/afada/">AFADA</a></small></p>
+          </div>
+          <div class="col-md-4">
+            <img alt="" src="images/simulation.gif" class="img-fluid" style="width:100%;" />
+            <p class="text-center"><small>simulated env with stocastic delays</small></p>
+          </div>
+        </div>
+
+        <div class="mx-auto mt-5">
+          <p class="h5">Overview</p>
+          <div class="text-secondary">
+            <p>This paper studies a novel planning problem for multiple agents that cannot share holding resources, named OTIMAPP (see title). Given a graph and a set of start-goal pairs, the problem consists in assigning a path to each agent that every agent eventually reaches their goal without blocking each other, regardless of how the agents are being scheduled at runtime. The motivation stems from the nature of distributed environments that agents take actions fully asynchronous and have no knowledge about those exact timings of other actors. We present solution conditions, computational complexity, construction of solvers, and robotic applications.</p>
+          </div>
+        </div>
+
+        <div class="mx-auto mt-5">
+          <p class="h5">News</p>
+          <ul>
+            <li>The paper has been accepted to IJCAI-22! (Apr. 2022)</li>
+          </ul>
+        </div>
+
+        <p class="h5 mt-5">Video</p>
+        <div class="text-center video-wrapper mb-5">
+          <iframe src="https://player.vimeo.com/video/541231131" width="854" height="480" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+        </div>
+
+        <p class="h5 mt-5">Slides</p>
+        <div class="mb-3" style="left: 0; width: 100%; height: 0; position: relative; padding-bottom: 56.1972%;"><iframe src="https://speakerdeck.com/player/f3c748242f774d55bab4d2439bea267b" style="top: 0; left: 0; width: 100%; height: 100%; position: absolute; border: 0;" allowfullscreen scrolling="no" allow="encrypted-media;"></iframe></div>
+
+        <div class="mx-auto">
+          <p class="h5">Citation</p>
+          <div class="citation mb-3">
+            <pre><code>@article{okumura2021offline,
+  title={Offline Time-Independent Multi-Agent Path Planning},
+  author={Okumura, Keisuke and Bonnet, Fran{\c{c}}ois and Tamura, Yasumasa and D{\'e}fago, Xavier},
+  journal={arXiv preprint arXiv:2105.07132},
+  year={2021}
+}</code></pre></div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <footer class="footer mt-auto">
+      <div class="container pt-3">
+        <p class="text-center">contact: okumura.k [at] coord.c.titech.ac.jp, &copy;2022 Keisuke Okumura</p>
+      </div>
+    </footer>
+  </body>
+</html>
