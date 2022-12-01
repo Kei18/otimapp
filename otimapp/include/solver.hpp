@@ -104,7 +104,7 @@ public:
   virtual void makeLog(const std::string& logfile = DEFAULT_PLAN_OUTPUT_FILE);
 
 protected:
-  void makeLogBasicInfo(std::ofstream& log);
+  virtual void makeLogBasicInfo(std::ofstream& log);
   void makeLogSolution(std::ofstream& log);
 
   // -------------------------------

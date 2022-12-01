@@ -1,9 +1,12 @@
 #include "../include/pp.hpp"
 
+#include <fstream>
+
 const std::string PP::SOLVER_NAME = "PP";
 
 PP::PP(Problem* _P)
     : Solver(_P),
+      itr_cnt(0),
       iter_cnt_max(DEFAULT_ITER_CNT_MAX),
       max_fragment_size(DEFAULT_MAX_FRAGMENT_SIZE)
 {
@@ -18,7 +21,6 @@ void PP::run()
   std::vector<int> id_list(P->getNum());
   std::iota(id_list.begin(), id_list.end(), 0);
 
-  int itr_cnt = 0;
   while (!solved && !overCompTime() && itr_cnt < iter_cnt_max) {
     ++itr_cnt;
 
@@ -64,6 +66,12 @@ void PP::run()
     delete table;
     elapsed_time_deadlock_detection += getElapsedTime(t_d);
   }
+}
+
+void PP::makeLogBasicInfo(std::ofstream& log)
+{
+  log << "repetation_PP=" << itr_cnt << "\n";
+  Solver::makeLogBasicInfo(log);
 }
 
 void PP::setParams(int argc, char* argv[])
