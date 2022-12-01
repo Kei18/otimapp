@@ -11,6 +11,7 @@ public:
   static const std::string SOLVER_NAME;
 
 private:
+  int itr_cnt;
   int iter_cnt_max;  // maximum number of randomization of priorities
   static constexpr int DEFAULT_ITER_CNT_MAX = 10;
 
@@ -19,6 +20,9 @@ private:
 
   // main
   void run();
+
+protected:
+  void makeLogBasicInfo(std::ofstream& log);
 
 public:
   PP(Problem* _P);
