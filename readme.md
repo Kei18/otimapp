@@ -2,7 +2,7 @@ otimapp
 ===
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-A simulator and visualizer used in a paper ["Offline Time-Independent Multi-Agent Path Planning"](https://kei18.github.io/otimapp/) (OTIMAPP, to appear at IJCAI-22).
+A simulator and visualizer used in a paper ["Offline Time-Independent Multi-Agent Path Planning"](https://kei18.github.io/otimapp/) (OTIMAPP, to appear at IJCAI-22 / T-RO-23).
 It is written in C++(17) with [CMake](https://cmake.org/) (≥v3.16) build.
 The repository uses [Google Test](https://github.com/google/googletest) and [the original library for 2D pathfinding](https://github.com/Kei18/grid-pathfinding) as git submodules.
 The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on MacOS.
@@ -12,18 +12,6 @@ The visualizer uses [openFrameworks](https://openframeworks.cc) and works only o
 | ---: | :--- |:--- |
 | macos-10.15 | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=master) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=master) | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=dev) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=dev) |
 | ubuntu-latest | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=master) | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=dev) |
-
-
-Please cite the following paper if you use the code in your published research:
-```
-@article{okumura2021offline,
-  title={Offline Time-Independent Multi-Agent Path Planning},
-  author={Okumura, Keisuke and Bonnet, Fran{\c{c}}ois and Tamura, Yasumasa and D{\'e}fago, Xavier},
-  journal={arXiv preprint arXiv:2105.07132},
-  year={2021}
-}
-```
-
 
 ## Demo
 ![100 agents in arena](./assets/demo.gif)
@@ -147,7 +135,8 @@ You can manipulate it via your keyboard. See printed info.
 
 
 ## Experimental Environment
-[![v1.1](https://img.shields.io/badge/tag-v1.1-blue.svg?style=flat)](https://github.com/Kei18/otimapp/releases/tag/v1.1)
+- IJCAI-22: [![v1.1](https://img.shields.io/badge/tag-v1.1-blue.svg?style=flat)](https://github.com/Kei18/otimapp/releases/tag/v1.1)
+- T-RO-23: [![v1.2](https://img.shields.io/badge/tag-v1.2-blue.svg?style=flat)](https://github.com/Kei18/otimapp/releases/tag/v1.2)
 
 Scripts for the experiments are in `exp_scripts/`.
 All instances are included in `./instances.zip`.
