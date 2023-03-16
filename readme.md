@@ -8,10 +8,10 @@ The repository uses [Google Test](https://github.com/google/googletest) and [the
 The visualizer uses [openFrameworks](https://openframeworks.cc) and works only on MacOS.
 
 
-| platform | status (master) | status (dev) |
-| ---: | :--- |:--- |
-| macos-10.15 | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=master) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=master) | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=dev) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=dev) |
-| ubuntu-latest | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=master) | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=dev) |
+| platform | status (master) |
+| ---: | :--- |
+| macos-10.15 | ![test_macos](https://github.com/Kei18/otimapp/workflows/test_macos/badge.svg?branch=master) ![build_visualizer_macos](https://github.com/Kei18/otimapp/workflows/build_visualizer_macos/badge.svg?branch=master) |
+| ubuntu-latest | ![test_ubuntu](https://github.com/Kei18/otimapp/workflows/test_ubuntu/badge.svg?branch=master) |
 
 ## Demo
 ![100 agents in arena](./assets/demo.gif)
