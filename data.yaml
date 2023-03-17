@@ -1,64 +1,84 @@
 title: |
-  project page generator (title)
+  Offline Time-Independent Multi-Agent Path Planning
 
 # meta-tag
 description: |-
-  demo site
+  OTIMAPP - novel planning problem for multiple agents that cannot share holding resources,
+  which is tolerant to timing uncertainties
 site_name: research projects | Keisuke Okumura
-site_url: https://kei18.github.io/project-page-generator/
+site_url: https://kei18.github.io/otimapp/
 thumbnail: thumbnail
 twitter: _kei18
 
 authors:
   - name: Keisuke Okumura
     url: https://kei18.github.io/
-    affiliation: Tokyo Institute of Technology
-  - name: Alice
-    url: https://en.wikipedia.org/wiki/Alice
-    affiliation: Alice's Adventures in Wonderland
-  - name: Satoshi Nakamoto
+  - name: François Bonnet
+    url: https://www.coord.c.titech.ac.jp/m/bonnet/
+  - name: Yasumasa Tamura
+    url: https://y7amura.github.io/
+  - name: Xavier Défago
+    url: https://www.coord.c.titech.ac.jp/m/defago/
+
+affiliation: Tokyo Institute of Technology
 
 topLinks:
-  - name: paper-link (e.g., AIJ-21)
-    url: https://doi.org/10.1016/j.artint.2022.103752
+  - name: IJCAI-22
+    url: https://www.ijcai.org/proceedings/2022/645
+  - name: arXiv
+    url: https://arxiv.org/abs/2105.07132
 
-headerImage: demo
+headerImage: thumbnail
 
 subLinks:
   - name: code
-    url: https://github.com/Kei18/project-page-generator
+    url: https://github.com/Kei18/otimapp"
 
 otherLinks:
   - name: |
-      example-1: LaCAM
-    url: https://kei18.github.io/lacam/
-  - name: |
-      example-2: MAPPCF
-    url: https://kei18.github.io/mappcf/
+      code: toio execution
+    url: https://github.com/Kei18/toio-exec
+
+demo:
+  - image: toio
+    description: |
+      centralized execution with <a href="https://toio.io/">toio</a>
+  - image: afada
+    description: |
+      decentralized execution with <a href="https://dfg-lab.github.io/afada/">AFADA</a>
+  - image: simulation
+    description: simulated env with stocastic delays
 
 abstract: |
-  <p>Write your abstract here</p>
-  <p><span class="text-danger">Lorem ipsum</span> dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>This study examines a novel planning problem for multiple agents that cannot share holding resources, named <span class="text-danger">OTIMAPP (Offline Time-Independent Multi-Agent Path Planning)</span>.
+  Given a graph and a set of start-goal pairs, the problem to be addressed is assigning a path to each agent, such that every agent eventually reaches its destination without blocking others, regardless of when each agent starts and finishes each own action.
+  This motivation stems from timing uncertainties, including the reality gaps between planning and robot execution.
+  In contrast to conventional solution concepts of multi-robot path planning that rely on timings, once OTIMAPP solutions are obtained, they can be executed without any synchronization between robot actions.
+  Moreover, there is a theoretical guarantee that all robots eventually reach their destinations, provided they avoid inter-robot collisions.
+  This study attempts to establish OTIMAPP both theoretically and practically.
+  Specifically, we present a formalization of the problem, solution conditions based on a categorization of deadlocks, computational complexities showing that OTIMAPP is computationally intractable, practical relaxation of the solution concept, two algorithms to solve OTIMAPP based on multi-agent pathfinding algorithms, empirical results showing large OTIMAPP instances can be solved to some extent, as well as robot demonstrations of asynchronous OTIMAPP execution.</p>
 
 news:
   - body: |
-      The paper has been accepted to Artificial Intelligence (AIJ)!
-    url: https://www.journals.elsevier.com/artificial-intelligence
-    date: Jul. 2022
+      The paper has been accepted to IJCAI-22!
+    url: https://ijcai-22.org/
+    date: Apr. 2022
 
-video: https://player.vimeo.com/video/645887407
+video: https://player.vimeo.com/video/541231131
 
-slides: https://speakerdeck.com/player/c720eb1fa04244c79127fe6ba0c03030
+slides: https://speakerdeck.com/player/f3c748242f774d55bab4d2439bea267b
 
 citation: |-
-  @article{okumura2022priority,
-  title = {Priority Inheritance with Backtracking for Iterative Multi-agent Path Finding},
-  journal = {Artificial Intelligence},
-  pages = {103752},
-  year = {2022},
-  issn = {0004-3702},
-  doi = {https://doi.org/10.1016/j.artint.2022.103752},
-  author = {Keisuke Okumura and Manao Machida and Xavier Défago and Yasumasa Tamura}
+  # conference version
+
+  @inproceedings{okumura2022offline,
+    title={Offline Time-Independent Multi-Agent Path Planning},
+    author={Okumura, Keisuke and Bonnet, François and Tamura, Yasumasa and Défago, Xavier},
+    booktitle={Proceedings of the Thirty-First International Joint Conference on Artificial Intelligence, {IJCAI-22}},
+    publisher={International Joint Conferences on Artificial Intelligence Organization},
+    pages={4649--4656},
+    year={2022},
+    month={7}
   }
 
 contact: |-
