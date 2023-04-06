@@ -1,5 +1,5 @@
 title: |
-  Offline Time-Independent Multi-Agent Path Planning
+  Offline Time-Independent Multiagent Path Planning
 
 # meta-tag
 description: |-
@@ -23,16 +23,18 @@ authors:
 affiliation: Tokyo Institute of Technology
 
 topLinks:
-  - name: IJCAI-22
+  - name: T-RO-23 (journal)
+    url: https://ieeexplore.ieee.org/document/10092929
+  - name: IJCAI-22 (conference)
     url: https://www.ijcai.org/proceedings/2022/645
-  - name: arXiv
+  - name: arXiv (full version for IJCAI-23)
     url: https://arxiv.org/abs/2105.07132
 
 headerImage: thumbnail
 
 subLinks:
   - name: code
-    url: https://github.com/Kei18/otimapp"
+    url: https://github.com/Kei18/otimapp
 
 otherLinks:
   - name: |
@@ -60,6 +62,10 @@ abstract: |
 
 news:
   - body: |
+      The extended version has been accepted to T-RO-23!
+    url: https://ieeexplore.ieee.org/document/10092929/
+    date: Apr. 2023
+  - body: |
       The paper has been accepted to IJCAI-22!
     url: https://ijcai-22.org/
     date: Apr. 2022
@@ -69,8 +75,16 @@ video: https://player.vimeo.com/video/541231131
 slides: https://speakerdeck.com/player/f3c748242f774d55bab4d2439bea267b
 
 citation: |-
-  # conference version
+  # journal version
+  @article{okumura2023offline,
+    author={Okumura, Keisuke and Bonnet, François and Tamura, Yasumasa and Défago, Xavier},
+    journal={IEEE Transactions on Robotics},
+    title={Offline Time-Independent Multiagent Path Planning},
+    year={2023},
+    doi={10.1109/TRO.2023.3258690}
+  }
 
+  # conference version
   @inproceedings{okumura2022offline,
     title={Offline Time-Independent Multi-Agent Path Planning},
     author={Okumura, Keisuke and Bonnet, François and Tamura, Yasumasa and Défago, Xavier},
