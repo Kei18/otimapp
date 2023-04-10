@@ -27,7 +27,7 @@ topLinks:
     url: https://ieeexplore.ieee.org/document/10092929
   - name: IJCAI-22 (conference)
     url: https://www.ijcai.org/proceedings/2022/645
-  - name: arXiv (full version for IJCAI-23)
+  - name: arXiv (full version for IJCAI-22)
     url: https://arxiv.org/abs/2105.07132
 
 headerImage: thumbnail
